@@ -1,6 +1,6 @@
 # LunarViewer
 
-[![Windows Build](https://github.com/LunaRyuko/LunarViewer/actions/workflows/msbuild.yml/badge.svg)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/msbuild.yml)
+[![Windows Build](https://github.com/LunaRyuko/LunarViewer/actions/workflows/msbuild.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/msbuild.yml) [![Linux Build](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml)
 
 A model viewer for Quake 1 and Hexen 2 with a focus on accurate representation.
 
@@ -17,7 +17,6 @@ Powered by raylib and dear imgui!
 
 ## Known issues
 
- - The code doesn't compile on anything that isn't Windows. Currently the only things from windows that I use are the MessageBox (for errors) and the Open File Dialog (Wine seems to be working alright so far). I'm unable to dedicate time to create Linux and Mac versions by myself, so any help would be appreciated!
  - Sometimes when switching the render mode, the model's texture will get unloaded. Switching the render mode again a few times will fix it.
  - Models with animated textures (groupskins) are not supported yet
  - Models with groupframes are not supported yet
