@@ -61,7 +61,7 @@ project "LunarViewer"
 	language "C++"
 	targetdir "bin/%{cfg.buildcfg}"
 	
-	cppdialect "gnu++17"
+	cppdialect "gnu++20"
 	
 	includedirs {"src"}
 	vpaths 
@@ -89,8 +89,8 @@ project "LunarViewer"
 	filter {"configurations:Release.DLL OR Release", "action:vs*"}
 		links {"glslang", "MachineIndependent", "GenericCodeGen", "OSDependent", "OGLCompiler"}
 	
-	filter "action:gmake*"
-		links {}
+	filter {"configurations:Release OR Debug", "action:gmake*"}
+		links {"pthread", "GL", "m", "dl", "rt", "X11"}
 
 project "physfs"
 	kind "StaticLib"
