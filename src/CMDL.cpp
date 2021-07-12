@@ -270,12 +270,12 @@ void CMDL::RefreshModel()
 		Com_Error(ERR_DIALOG, "Failed to load model %s", Path.c_str());
 		return;
 	}
-
+#if defined(_MSC_VER)
 #define CheckBytes(MsgIfFail, Val, ...)		\
 	{									\
 		if(bytesRead < Val)				\
 		{								\
-			Com_Error(ERR_DIALOG, "Expected %u bytes, got %u.\nThe model might be corrupted!\n\n" ##MsgIfFail, Val, bytesRead, __VA_ARGS__ ); \
+			Com_Error(ERR_DIALOG, "Expected %u bytes, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead, __VA_ARGS__ ); \
 			return;						\
 		}								\
 	}
@@ -284,10 +284,57 @@ void CMDL::RefreshModel()
 	{									\
 		if(bytesRead < Val)				\
 		{								\
-			Com_Error(ERR_DIALOG, "Expected %u elements, got %u.\nThe model might be corrupted!\n\n" ##MsgIfFail, Val, bytesRead, __VA_ARGS__ ); \
+			Com_Error(ERR_DIALOG, "Expected %u elements, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead, __VA_ARGS__ ); \
 			return;						\
 		}								\
 	}
+#elif defined(__GNUC__)
+#define CheckBytes(MsgIfFail, Val, args...)		\
+	{									\
+		if(bytesRead < Val)				\
+		{								\
+			Com_Error(ERR_DIALOG, "Expected %u bytes, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead, args ); \
+			return;						\
+		}								\
+	}
+
+#define CheckElems(MsgIfFail, Val, args...)		\
+	{									\
+		if(bytesRead < Val)				\
+		{								\
+			Com_Error(ERR_DIALOG, "Expected %u elements, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead, args ); \
+			return;						\
+		}								\
+	}
+#else
+
+#if __cplusplus >= 202002L
+
+#define CheckBytes(MsgIfFail, Val, ...)		\
+	{									\
+		if(bytesRead < Val)				\
+		{								\
+			Com_Error(ERR_DIALOG, "Expected %u bytes, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead __VA_OPT__(,) __VA_ARGS__ ); \
+			return;						\
+		}								\
+	}
+
+#define CheckElems(MsgIfFail, Val, ...)		\
+	{									\
+		if(bytesRead < Val)				\
+		{								\
+			Com_Error(ERR_DIALOG, "Expected %u elements, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead __VA_OPT__(,) __VA_ARGS__ ); \
+			return;						\
+		}								\
+	}
+
+#else 
+
+#error "No __VA_ARGS__ support for when no variadic arguments are specified!"
+
+#endif
+
+#endif
 
 	//FMDLHeader header;
 
