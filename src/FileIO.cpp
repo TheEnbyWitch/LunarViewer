@@ -8,6 +8,7 @@
 #endif
 
 // LUNA: i dont know if this is deprecated and for now i dont care
+#if defined(_WIN32)
 std::wstring s2ws(const std::string& s)
 {
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
@@ -19,6 +20,7 @@ std::string ws2s(const std::wstring& s)
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 	return converter.to_bytes(s);
 }
+#endif
 
 std::string FileIO::GetFileOpen(std::string InitialDirectory, const wchar_t* Filter, void* WindowHandle)
 {
