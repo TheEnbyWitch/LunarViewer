@@ -27,9 +27,9 @@ Powered by raylib and dear imgui!
 
 ## Building
 ### On Windows
-Run `premake5-2019.bat` to create a Visual Studio 2019 solution!
+Run `premake-2019.bat` to create a Visual Studio 2019 solution!
 ### On Linux/Mac
-You're on your own for now. The project uses [premake5](https://premake.github.io/), so it should be easy enough to set up.
+Run `premake-linux.sh` to create the Makefiles and then run `make` to build! (You can do `make config=release_x64` to make a release build)
 
 ## Helpful resources used in the making of this project
 
