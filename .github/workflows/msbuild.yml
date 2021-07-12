@@ -23,7 +23,7 @@ jobs:
       
     - name: Run Premake
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: premake5 vs2019
+      run: ./premake5-2019.bat
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
