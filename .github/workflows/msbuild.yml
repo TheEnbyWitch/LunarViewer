@@ -36,7 +36,12 @@ jobs:
       
     - uses: actions/upload-artifact@v2
       with:
-        name: my-artifact
+        name: lunar-artifact
         path: |
-          bin/*.exe
           game/
+          
+    - uses: actions/upload-artifact@v2
+      with:
+        name: lunar-artifact
+        path: |
+          bin/**/*.exe
