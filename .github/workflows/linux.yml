@@ -23,7 +23,7 @@ jobs:
       uses: abel0b/setup-premake@v1
       
     - name: Install X11
-      run: brew install libx11
+      run: brew install libx11 libxcursor
       
     - name: Run Premake
       working-directory: ${{env.GITHUB_WORKSPACE}}
