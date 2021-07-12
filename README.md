@@ -17,6 +17,15 @@ A model viewer for Quake 1 and Hexen 2 using raylib and imgui!
  - No config of any kind is saved (apart from imgui)
  - There's a slight offset on the UVs that I need to look into
 
+## Helpful resources used in the making of this project
+
+Loading Quake 1 MDL files - http://tfc.duke.free.fr/coding/mdl-specs-en.html
+
+## Credits
+
+ - Quake Mapping Discord (specifically Spoike and Paril) - help with the RAPO model format and flags
+ - [MissLav](https://www.artstation.com/misslavender) - testing on Linux with Wine
+
 ## Used open source projects and libraries
 
 ### raylib
@@ -44,12 +53,3 @@ Not used for anything yet, but the goal is to use it to read files from PAKs and
 https://github.com/KhronosGroup/glslang
 
 Used for preprocessing the shader files
-
-## Helpful resources used in the making of this project
-
-Loading Quake 1 MDL files - http://tfc.duke.free.fr/coding/mdl-specs-en.html
-
-## Credits
-
- - Quake Mapping Discord (specifically Spoike and Paril) - help with the RAPO model format and flags
- - [MissLav](https://www.artstation.com/misslavender) - testing on Linux with Wine
