@@ -25,7 +25,7 @@ Powered by raylib and dear imgui!
 ### On Windows
 Run `premake5-2019.bat` to create a Visual Studio 2019 solution!
 ### On Linux/Mac
-You're on your own for now. The project uses (premake5)[https://premake.github.io/], so it should be easy enough to set up.
+You're on your own for now. The project uses [premake5](https://premake.github.io/), so it should be easy enough to set up.
 
 ## Helpful resources used in the making of this project
 
