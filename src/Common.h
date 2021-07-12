@@ -25,8 +25,34 @@ char* va(const char* fmt, ...);
 
 void Com_Printf(char* fmt, ...);
 
+// LUNA: When I first wrote this code in 2017, I did not think that it would still cause issues in 2021
+#if defined(_MSC_VER)
+
+// Works reliably on MSVC, causes compile errors on Linux! Fun!
 #define Com_Error(level, fmt, ...) \
-	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt,## __VA_ARGS__));
+	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt,##__VA_ARGS__));
+
+#elif defined(__GNUC__)
+
+// The GCC way
+#define Com_Error(level, fmt, args...) \
+	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt, args));
+
+#else
+
+// Let's see if we can use C++20
+#if __cplusplus >= 202002L
+
+#define Com_Error(level, fmt, ...) \
+	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt __VA_OPT__(,) __VA_ARGS__));
+
+#else 
+
+#error "No __VA_ARGS__ support for when no variadic arguments are specified!"
+
+#endif
+
+#endif
 
 void Com_ErrorEx(int level, char* source, char* msg);
 
@@ -95,14 +121,20 @@ void CheckForMemoryLeaks();
 template<class T>
 inline T* Com_MallocEx(size_t Size, FMemTrackCallInfo CallInfo)
 {
+	void* ptr = malloc((size_t)Size);
 #ifdef TRACK_MEMORY
 	//Com_Printf("[Malloc] %s (%s), size: %u\n", typeid(T).name(), typeid(T).raw_name(), (size_t)Size);
-#endif
-	void* ptr = malloc((size_t)Size);
 	if (ptr)
 	{
-		AddMemToTracker(ptr, FMemTrack{ typeid(T).name(), typeid(T).raw_name(), Size, CallInfo });
+		AddMemToTracker(ptr, FMemTrack{ typeid(T).name(),
+#if defined(_MSC_VER)
+			typeid(T).raw_name()
+#else
+			""
+#endif
+			, Size, CallInfo });
 	}
+#endif
 	return (T*)ptr;
 }
 
@@ -114,7 +146,13 @@ inline T* Com_CallocEx(size_t ElementCount, FMemTrackCallInfo CallInfo)
 	//Com_Printf("[Calloc] %s (%s), size: %u, count: %u\n", typeid(T).name(), typeid(T).raw_name(), sizeof(T), ElementCount);
 	if (ptr)
 	{
-		AddMemToTracker(ptr, FMemTrack{ typeid(T).name(), typeid(T).raw_name(), ElementCount * sizeof(T), CallInfo });
+		AddMemToTracker(ptr, FMemTrack{ typeid(T).name(),
+#if defined(_MSC_VER)
+			typeid(T).raw_name()
+#else
+			""
+#endif
+			, ElementCount * sizeof(T), CallInfo });
 	}
 #endif
 	return (T*)ptr;
@@ -128,7 +166,13 @@ inline T* Com_ReallocEx(T* Element, size_t ElementSize, FMemTrackCallInfo CallIn
 #ifdef TRACK_MEMORY
 	if (ptr)
 	{
-		AddMemToTracker(ptr, FMemTrack{ typeid(T).name(), typeid(T).raw_name(), Size, CallInfo });
+		AddMemToTracker(ptr, FMemTrack{ typeid(T).name(),
+#if defined(_MSC_VER)
+			typeid(T).raw_name()
+#else
+			""
+#endif
+			, Size, CallInfo });
 		FreeMemFromTracker(Element);
 	}
 #endif 
@@ -185,7 +229,7 @@ inline void Com_Free_NoInfo(T* Element)
 
 #define Com_New(T, ...) \
 	([__VA_ARGS__]() -> T* { T* ptr = new T(__VA_ARGS__); \
-	if(ptr) { AddMemToTracker(ptr, FMemTrack{ typeid(T).name(), typeid(T).raw_name(), sizeof(T), FMemTrackCallInfo{ (uint32_t)1, __LINE__, __FILE__, __FUNCTION__} }); } \
+	if(ptr) { AddMemToTracker(ptr, FMemTrack{ typeid(T).name(), "", sizeof(T), FMemTrackCallInfo{ (uint32_t)1, __LINE__, __FILE__, __FUNCTION__} }); } \
 	return ptr; })()
 
 #define Com_Delete(Element) \

@@ -4,6 +4,7 @@
 #include <rlgl.h>
 #include "external/glad.h"
 #include "ShaderManager.h"
+#include <cstring>
 
 extern Shader shader;
 extern Texture2D ColormapTexture;
