@@ -1,4 +1,7 @@
 # LunarViewer
+
+[![Windows Build](https://github.com/LunaRyuko/LunarViewer/actions/workflows/msbuild.yml/badge.svg)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/msbuild.yml)
+
 A model viewer for Quake 1 and Hexen 2 with a focus on accurate representation.
 
 Powered by raylib and dear imgui!
