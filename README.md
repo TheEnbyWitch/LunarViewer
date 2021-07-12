@@ -16,6 +16,7 @@ A model viewer for Quake 1 and Hexen 2 using raylib and imgui!
  - You can't change the skin that's being previewed
  - No config of any kind is saved (apart from imgui)
  - There's a slight offset on the UVs that I need to look into
+ - The code is an absolute mess that needs to be cleaned up
 
 ## Helpful resources used in the making of this project
 
