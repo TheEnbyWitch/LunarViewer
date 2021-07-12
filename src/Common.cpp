@@ -23,7 +23,7 @@ char* va(const char* fmt, ...)
 	return result;
 }
 
-void Com_Printf(char* fmt, ...)
+void Com_Printf(const char* fmt, ...)
 {
 	static int index = 0;
 	static char string[4][1024];	// in case called by nested functions
