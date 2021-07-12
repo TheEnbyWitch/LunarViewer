@@ -21,6 +21,12 @@ Powered by raylib and dear imgui!
  - There's a slight offset on the UVs that I need to look into
  - The code is an absolute mess that needs to be cleaned up
 
+## Building
+### On Windows
+Run `premake5-2019.bat` to create a Visual Studio 2019 solution!
+### On Linux/Mac
+You're on your own for now. The project uses [premake5](https://premake.github.io/), so it should be easy enough to set up.
+
 ## Helpful resources used in the making of this project
 
 Loading Quake 1 MDL files - http://tfc.duke.free.fr/coding/mdl-specs-en.html
@@ -57,3 +63,9 @@ Not used for anything yet, but the goal is to use it to read files from PAKs and
 https://github.com/KhronosGroup/glslang
 
 Used for preprocessing the shader files
+
+### Premake
+
+https://premake.github.io/
+
+'nuff said
