@@ -3,7 +3,7 @@ A model viewer for Quake 1 and Hexen 2 using raylib and imgui!
 
 ## Known issues
 
- - The code doesn't compile on anything that isn't Windows. Currently the only things from windows that I use are the MessageBox (for errors) and the Open File Dialog
+ - The code doesn't compile on anything that isn't Windows. Currently the only things from windows that I use are the MessageBox (for errors) and the Open File Dialog (Wine seems to be working alright so far)
  - Sometimes when switching the render mode, the model's texture will get unloaded. Switching the render mode again a few times will fix it.
 
 ## Used open source projects and libraries
