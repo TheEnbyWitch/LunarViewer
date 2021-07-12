@@ -32,18 +32,18 @@ void Com_Printf(char* fmt, ...);
 #define Com_Error(level, fmt, ...) \
 	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt __VA_OPT__(,) __VA_ARGS__));
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) || defined(__GNUC__)
 
 // Works reliably on MSVC, causes compile errors on Linux! Fun!
 #define Com_Error(level, fmt, ...) \
-	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt,##__VA_ARGS__));
-
+	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt, __VA_ARGS__));
+/*
 #elif defined(__GNUC__)
 
 // The GCC way
 #define Com_Error(level, fmt, args...) \
 	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt, args));
-
+	*/
 #else 
 
 #error "No __VA_ARGS__ support for when no variadic arguments are specified!"
