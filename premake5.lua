@@ -79,10 +79,8 @@ project "LunarViewer"
 	defines{"PLATFORM_DESKTOP", "GRAPHICS_API_OPENGL_33"}
 	
 	filter "action:vs*"
-		cppdialect "C++17"
 		defines{"_WINSOCK_DEPRECATED_NO_WARNINGS", "_CRT_SECURE_NO_WARNINGS", "_WIN32"}
-		dependson {"raylib", "physfs"}
-		links {"winmm", "raylib.lib", "kernel32"}
+		links {"winmm", "kernel32"}
 		libdirs {"bin/%{cfg.buildcfg}"}
 
 	filter {"configurations:Debug.DLL OR Debug", "action:vs*"}
