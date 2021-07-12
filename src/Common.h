@@ -202,7 +202,7 @@ inline T* Com_Calloc_NoInfo(size_t ElementCount)
 template<class T>
 inline T* Com_Realloc_NoInfo(T* Element, size_t ElementSize)
 {
-	return Com_ReallocEx<T>(Element, ElementCount, FMemTrackCallInfo{ 0 });
+	return Com_ReallocEx<T>(Element, ElementSize, FMemTrackCallInfo{ 0 });
 }
 
 template<class T>
