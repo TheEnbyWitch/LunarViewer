@@ -63,3 +63,9 @@ Not used for anything yet, but the goal is to use it to read files from PAKs and
 https://github.com/KhronosGroup/glslang
 
 Used for preprocessing the shader files
+
+### Premake
+
+https://premake.github.io/
+
+'nuff said
