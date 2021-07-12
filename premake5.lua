@@ -61,7 +61,7 @@ project "LunarViewer"
 	language "C++"
 	targetdir "bin/%{cfg.buildcfg}"
 	
-	cppdialect "gnu++20"
+	cppdialect "gnu++17"
 	
 	includedirs {"src"}
 	vpaths 
