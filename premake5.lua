@@ -60,7 +60,11 @@ project "LunarViewer"
 	location "src"
 	language "C++"
 	targetdir "bin/%{cfg.buildcfg}"
-	cppdialect "C++17"
+	
+	cppdialect "gnu++17"
+
+	filter "action:vs*"
+		cppdialect "C++17"
 	
 	includedirs {"src"}
 	vpaths 
@@ -70,6 +74,7 @@ project "LunarViewer"
 	}
 	files {"src/**.c", "src/**.cpp", "src/**.h"}
 
+	dependson {"raylib", "physfs"}
 	links {"raylib", "physfs"}
 	libdirs {"glslang/lib"}
 	

@@ -26,7 +26,13 @@ char* va(const char* fmt, ...);
 void Com_Printf(char* fmt, ...);
 
 // LUNA: When I first wrote this code in 2017, I did not think that it would still cause issues in 2021
-#if defined(_MSC_VER)
+// Thankfully, C++20 supports it, but you need to use an experimental preprocessor in VS
+#if __cplusplus >= 202002L
+
+#define Com_Error(level, fmt, ...) \
+	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt __VA_OPT__(,) __VA_ARGS__));
+
+#elif defined(_MSC_VER)
 
 // Works reliably on MSVC, causes compile errors on Linux! Fun!
 #define Com_Error(level, fmt, ...) \
@@ -38,19 +44,9 @@ void Com_Printf(char* fmt, ...);
 #define Com_Error(level, fmt, args...) \
 	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt, args));
 
-#else
-
-// Let's see if we can use C++20
-#if __cplusplus >= 202002L
-
-#define Com_Error(level, fmt, ...) \
-	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt __VA_OPT__(,) __VA_ARGS__));
-
 #else 
 
 #error "No __VA_ARGS__ support for when no variadic arguments are specified!"
-
-#endif
 
 #endif
 
