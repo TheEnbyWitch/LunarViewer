@@ -25,6 +25,9 @@ jobs:
     - name: Run Premake
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: premake5 gmake2
+    
+    - name: make help
+      run: make help
 
     - name: make
       run: make config=${{env.BUILD_CONFIGURATION}}
