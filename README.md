@@ -57,6 +57,10 @@ https://github.com/ocornut/imgui
 
 Used for the main UI
 
+### raylib backend for ImGui
+
+https://github.com/oskaritimperi/imgui-impl-raylib
+
 ### PhysicsFS
 
 https://github.com/icculus/physfs
