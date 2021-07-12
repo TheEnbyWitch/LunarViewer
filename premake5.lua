@@ -60,7 +60,8 @@ project "LunarViewer"
 	location "src"
 	language "C++"
 	targetdir "bin/%{cfg.buildcfg}"
-	cppdialect "C++17"
+	
+	cppdialect "gnu++17"
 	
 	includedirs {"src"}
 	vpaths 
@@ -70,6 +71,7 @@ project "LunarViewer"
 	}
 	files {"src/**.c", "src/**.cpp", "src/**.h"}
 
+	dependson {"raylib", "physfs"}
 	links {"raylib", "physfs"}
 	libdirs {"glslang/lib"}
 	
@@ -78,18 +80,18 @@ project "LunarViewer"
 	
 	filter "action:vs*"
 		defines{"_WINSOCK_DEPRECATED_NO_WARNINGS", "_CRT_SECURE_NO_WARNINGS", "_WIN32"}
-		dependson {"raylib", "physfs"}
-		links {"winmm", "raylib.lib", "kernel32"}
+		links {"raylib.lib"}
 		libdirs {"bin/%{cfg.buildcfg}"}
-		
-	filter "action:gmake*"
-		links {"pthread", "GL", "m", "dl", "rt", "X11"}
+		cppdialect "c++17" -- fallback, since doing gnu++ will cause VS to use the default version which will always be old
 
-	filter "configurations:Debug.DLL OR Debug"
+	filter {"configurations:Debug.DLL OR Debug", "action:vs*"}
 		links {"glslangd", "MachineIndependentd", "GenericCodeGend", "OSDependentd", "OGLCompilerd"}
 			
-	filter "configurations:Release.DLL OR Release"
+	filter {"configurations:Release.DLL OR Release", "action:vs*"}
 		links {"glslang", "MachineIndependent", "GenericCodeGen", "OSDependent", "OGLCompiler"}
+	
+	filter {"configurations:Release OR Debug", "action:gmake*"}
+		links {"pthread", "GL", "m", "dl", "rt", "X11"}
 
 project "physfs"
 	kind "StaticLib"

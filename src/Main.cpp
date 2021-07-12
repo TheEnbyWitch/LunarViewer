@@ -624,15 +624,15 @@ int main(int argc, char** argv)
             {
                 bool HasFloor = GViewerSettings.DrawFloor;
                 CurrentModel->Frame(GetFrameTime(), GViewerSettings.AnimBegin, GViewerSettings.AnimEnd);
-                SetShaderValue(CurrentModel->Shader, GetShaderLocation(CurrentModel->Shader, "screenSize"), screen, SHADER_UNIFORM_VEC2);
-                SetShaderValue(CurrentModel->Shader, GetShaderLocation(CurrentModel->Shader, "floorOffset"), &GViewerSettings.FloorOffset, SHADER_UNIFORM_FLOAT);
+                SetShaderValue(CurrentModel->RShader, GetShaderLocation(CurrentModel->RShader, "screenSize"), screen, SHADER_UNIFORM_VEC2);
+                SetShaderValue(CurrentModel->RShader, GetShaderLocation(CurrentModel->RShader, "floorOffset"), &GViewerSettings.FloorOffset, SHADER_UNIFORM_FLOAT);
                 float lightOffset = 0.0f;
-                SetShaderValue(CurrentModel->Shader, GetShaderLocation(CurrentModel->Shader, "lightOffset"), &lightOffset, SHADER_UNIFORM_FLOAT);
+                SetShaderValue(CurrentModel->RShader, GetShaderLocation(CurrentModel->RShader, "lightOffset"), &lightOffset, SHADER_UNIFORM_FLOAT);
                 int isMirrored = 0;
-                SetShaderValue(CurrentModel->Shader, GetShaderLocation(CurrentModel->Shader, "isMirrored"), &isMirrored, SHADER_UNIFORM_INT);
+                SetShaderValue(CurrentModel->RShader, GetShaderLocation(CurrentModel->RShader, "isMirrored"), &isMirrored, SHADER_UNIFORM_INT);
 
                 int isAlphaTested = CurrentModel->MDLHeader.Flags & EF_HOLEY ? 1 : 0;
-                SetShaderValue(CurrentModel->Shader, GetShaderLocation(CurrentModel->Shader, "isAlphaTested"), &isAlphaTested, SHADER_UNIFORM_INT);
+                SetShaderValue(CurrentModel->RShader, GetShaderLocation(CurrentModel->RShader, "isAlphaTested"), &isAlphaTested, SHADER_UNIFORM_INT);
                 rlDisableBackfaceCulling();
                 CurrentModel->DrawModel();
 
@@ -650,7 +650,7 @@ int main(int argc, char** argv)
                 }
                 glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-                DrawMesh(CurrentModel->Mesh, CurrentModel->Material, root);
+                DrawMesh(CurrentModel->RMesh, CurrentModel->RMaterial, root);
 
                 if (HasFloor)
                 {
@@ -682,10 +682,10 @@ int main(int argc, char** argv)
                     reflectionMatrix = MatrixMultiply(reflectionMatrix, MatrixTranslate(0.0f, GViewerSettings.FloorOffset * 2, 0.0f));
                     glStencilFunc(GL_EQUAL, 1, 0xFF);
                     lightOffset = -0.0f;
-                    SetShaderValue(CurrentModel->Shader, GetShaderLocation(CurrentModel->Shader, "lightOffset"), &lightOffset, SHADER_UNIFORM_FLOAT);
+                    SetShaderValue(CurrentModel->RShader, GetShaderLocation(CurrentModel->RShader, "lightOffset"), &lightOffset, SHADER_UNIFORM_FLOAT);
                     isMirrored = 1;
-                    SetShaderValue(CurrentModel->Shader, GetShaderLocation(CurrentModel->Shader, "isMirrored"), &isMirrored, SHADER_UNIFORM_INT);
-                    DrawMesh(CurrentModel->Mesh, CurrentModel->Material, reflectionMatrix);
+                    SetShaderValue(CurrentModel->RShader, GetShaderLocation(CurrentModel->RShader, "isMirrored"), &isMirrored, SHADER_UNIFORM_INT);
+                    DrawMesh(CurrentModel->RMesh, CurrentModel->RMaterial, reflectionMatrix);
                     glStencilFunc(GL_ALWAYS, 0, 0xFF);
 
                     glDisable(GL_CLIP_DISTANCE1);
@@ -793,7 +793,7 @@ int main(int argc, char** argv)
                         {
                             ImGui::TableNextRow(); ImGui::TableNextColumn();
                             ImGui::Text("Vertices"); ImGui::TableNextColumn();
-                            ImGui::Text("%u (%u rendered)", Header->NumVerts, CurrentModel->Mesh.vertexCount);
+                            ImGui::Text("%u (%u rendered)", Header->NumVerts, CurrentModel->RMesh.vertexCount);
                             HelpMarker("Due to the way UVs are calculated, the vertices need to be unique for every triangle. Fortunately, this does not contribute to the vertex limit in the engine.");
 
                             ImGui::TableNextRow(); ImGui::TableNextColumn();
