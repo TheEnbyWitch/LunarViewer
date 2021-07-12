@@ -3,6 +3,8 @@ A model viewer for Quake 1 and Hexen 2 using raylib and imgui!
 
 ## Features
  - Support for Quake 1 (IDPO) and Hexen 2 (RAPO) model formats
+ - Hardware-accelerated with OpenGL, while still maintaining the software renderer look
+ - Animation Interpolation
 
 ## Known issues
 
@@ -12,6 +14,7 @@ A model viewer for Quake 1 and Hexen 2 using raylib and imgui!
  - Models with groupframes are not supported yet
  - You can't change the skin that's being previewed
  - No config of any kind is saved (apart from imgui)
+ - There's a slight offset on the UVs that I need to look into
 
 ## Used open source projects and libraries
 
@@ -40,3 +43,12 @@ Not used for anything yet, but the goal is to use it to read files from PAKs and
 https://github.com/KhronosGroup/glslang
 
 Used for preprocessing the shader files
+
+## Helpful resources used in the making of this project
+
+Loading Quake 1 MDL files - http://tfc.duke.free.fr/coding/mdl-specs-en.html
+
+## Credits
+
+ - Quake Mapping Discord (specifically Spoike and Paril) - help with the RAPO model format and flags
+ - [MissLav](mailto:MissLav@protonmail.com) - testing on Linux with Wine
