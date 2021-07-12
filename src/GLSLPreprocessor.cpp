@@ -173,7 +173,7 @@ bool GLSLPreprocessor::ProcessShader(const char* shaderCode, const GLSLCompilerS
 
 	
     // Repository only includes glslang binaries for windows
-#if defined(_MSC_VER) && 0
+#if defined(_MSC_VER)
 
 	glslang::TProgram& program = *new glslang::TProgram;
 	glslang::TShader* shader = new glslang::TShader(GetStage(settings.Stage));
