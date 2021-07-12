@@ -1,5 +1,7 @@
 # LunarViewer
-A model viewer for Quake 1 and Hexen 2 using raylib and imgui!
+A model viewer for Quake 1 and Hexen 2 with a focus on accurate representation.
+
+Powered by raylib and dear imgui!
 
 ## Features
  - Support for Quake 1 (IDPO) and Hexen 2 (RAPO) model formats
