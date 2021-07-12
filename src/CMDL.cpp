@@ -275,7 +275,7 @@ void CMDL::RefreshModel()
 	{									\
 		if(bytesRead < Val)				\
 		{								\
-			Com_Error(ERR_DIALOG, "Expected %u bytes, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead, __VA_ARGS__ ); \
+			Com_Error(ERR_DIALOG, "Expected %u bytes, got %u.\nThe model might be corrupted!\n\n" ##MsgIfFail, Val, bytesRead, __VA_ARGS__ ); \
 			return;						\
 		}								\
 	}
@@ -284,7 +284,7 @@ void CMDL::RefreshModel()
 	{									\
 		if(bytesRead < Val)				\
 		{								\
-			Com_Error(ERR_DIALOG, "Expected %u elements, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead, __VA_ARGS__ ); \
+			Com_Error(ERR_DIALOG, "Expected %u elements, got %u.\nThe model might be corrupted!\n\n" ##MsgIfFail, Val, bytesRead, __VA_ARGS__ ); \
 			return;						\
 		}								\
 	}
