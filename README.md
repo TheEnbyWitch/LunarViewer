@@ -4,6 +4,7 @@ A model viewer for Quake 1 and Hexen 2 with a focus on accurate representation.
 Powered by raylib and dear imgui!
 
 ## Features
+
  - Support for Quake 1 (IDPO) and Hexen 2 (RAPO) model formats
  - Hardware-accelerated with OpenGL, while still maintaining the software renderer look
  - Vertices are transformed and animated all on the GPU via a vertex shader
@@ -11,7 +12,7 @@ Powered by raylib and dear imgui!
 
 ## Known issues
 
- - The code doesn't compile on anything that isn't Windows. Currently the only things from windows that I use are the MessageBox (for errors) and the Open File Dialog (Wine seems to be working alright so far)
+ - The code doesn't compile on anything that isn't Windows. Currently the only things from windows that I use are the MessageBox (for errors) and the Open File Dialog (Wine seems to be working alright so far). I'm unable to dedicate time to create Linux and Mac versions by myself, so any help would be appreciated!
  - Sometimes when switching the render mode, the model's texture will get unloaded. Switching the render mode again a few times will fix it.
  - Models with animated textures (groupskins) are not supported yet
  - Models with groupframes are not supported yet
