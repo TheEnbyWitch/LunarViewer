@@ -11,6 +11,7 @@ A model viewer for Quake 1 and Hexen 2 using raylib and imgui!
  - Models with animated textures (groupskins) are not supported yet
  - Models with groupframes are not supported yet
  - You can't change the skin that's being previewed
+ - No config of any kind is saved (apart from imgui)
 
 ## Used open source projects and libraries
 
