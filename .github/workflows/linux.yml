@@ -1,7 +1,6 @@
 name: Linux Build
 
-on:
-  workflow_dispatch:
+on: [push, pull_request]
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -11,6 +10,7 @@ env:
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
   # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
   BUILD_CONFIGURATION: release_x64
+  BUILD_DIR: Release
 
 jobs:
   build:
@@ -42,4 +42,4 @@ jobs:
       with:
         name: lunar-artifact
         path: |
-          bin/${{env.BUILD_CONFIGURATION}}/*
+          bin/${{env.BUILD_DIR}}/*
