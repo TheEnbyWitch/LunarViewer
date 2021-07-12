@@ -303,7 +303,7 @@ void CMDL::RefreshModel()
 
 	bytesRead = fread(&mdlInfo, 1, sizeof(FMDLInfo), f);
 
-	CheckBytes("Failed to load model info!", sizeof(FMDLInfo));
+	CheckBytes("Failed to load model info!", sizeof(FMDLInfo), 0);
 
 	switch (mdlInfo.Magic)
 	{
@@ -320,7 +320,7 @@ void CMDL::RefreshModel()
 		fseek(f, 0, 0);
 		bytesRead = fread(&MDLHeaderUnion, 1, sizeof(FMDLHeader_IDPO), f);
 
-		CheckBytes("Failed loading the header!", sizeof(FMDLHeader_IDPO));
+		CheckBytes("Failed loading the header!", sizeof(FMDLHeader_IDPO), 0);
 
 		break;
 
@@ -337,7 +337,7 @@ void CMDL::RefreshModel()
 		fseek(f, 0, 0);
 		bytesRead = fread(&MDLHeaderUnion, 1, sizeof(FMDLHeader_RAPO), f);
 
-		CheckBytes("Failed loading the header!", sizeof(FMDLHeader_RAPO));
+		CheckBytes("Failed loading the header!", sizeof(FMDLHeader_RAPO), 0);
 
 		break;
 	}
@@ -392,13 +392,13 @@ void CMDL::RefreshModel()
 	{
 		TexCoords = Com_Calloc(FMDLTexCoord, MDLHeader.NumVerts);
 		bytesRead = fread(TexCoords, sizeof(FMDLTexCoord), MDLHeader.NumVerts, f);
-		CheckElems("Failed reading texture coordinates!", MDLHeader.NumVerts);
+		CheckElems("Failed reading texture coordinates!", MDLHeader.NumVerts, 0);
 	}
 	else if (MDLFormat == EMDLFormat::RavenPolyModel)
 	{
 		TexCoords = Com_Calloc(FMDLTexCoord, GetMDLHeader<FMDLHeader_RAPO>().NumTexCoords);
 		bytesRead = fread(TexCoords, sizeof(FMDLTexCoord), GetMDLHeader<FMDLHeader_RAPO>().NumTexCoords, f);
-		CheckElems("Failed reading texture coordinates!", GetMDLHeader<FMDLHeader_RAPO>().NumTexCoords);
+		CheckElems("Failed reading texture coordinates!", GetMDLHeader<FMDLHeader_RAPO>().NumTexCoords, 0);
 	}
 	else
 	{
@@ -408,7 +408,7 @@ void CMDL::RefreshModel()
 
 	Triangles = Com_Calloc(FMDLTriangle, MDLHeader.NumTris); // new FMDLTriangle[MDLHeader.NumTris];
 	bytesRead = fread(Triangles, sizeof(FMDLTriangle), MDLHeader.NumTris, f);
-	CheckElems("Failed reading triangles!", MDLHeader.NumTris);
+	CheckElems("Failed reading triangles!", MDLHeader.NumTris, 0);
 
 	// Very naive code assuming we have only a single simple frame
 #if 0
