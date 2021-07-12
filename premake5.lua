@@ -62,9 +62,6 @@ project "LunarViewer"
 	targetdir "bin/%{cfg.buildcfg}"
 	
 	cppdialect "gnu++17"
-
-	filter "action:vs*"
-		cppdialect "C++17"
 	
 	includedirs {"src"}
 	vpaths 
@@ -82,16 +79,17 @@ project "LunarViewer"
 	defines{"PLATFORM_DESKTOP", "GRAPHICS_API_OPENGL_33"}
 	
 	filter "action:vs*"
+		cppdialect "C++17"
 		defines{"_WINSOCK_DEPRECATED_NO_WARNINGS", "_CRT_SECURE_NO_WARNINGS", "_WIN32"}
 		dependson {"raylib", "physfs"}
 		links {"winmm", "raylib.lib", "kernel32"}
 		libdirs {"bin/%{cfg.buildcfg}"}
 
-		filter "configurations:Debug.DLL OR Debug"
-			links {"glslangd", "MachineIndependentd", "GenericCodeGend", "OSDependentd", "OGLCompilerd"}
-				
-		filter "configurations:Release.DLL OR Release"
-			links {"glslang", "MachineIndependent", "GenericCodeGen", "OSDependent", "OGLCompiler"}
+	filter {"configurations:Debug.DLL OR Debug", "action:vs*"}
+		links {"glslangd", "MachineIndependentd", "GenericCodeGend", "OSDependentd", "OGLCompilerd"}
+			
+	filter {"configurations:Release.DLL OR Release", "action:vs*"}
+		links {"glslang", "MachineIndependent", "GenericCodeGen", "OSDependent", "OGLCompiler"}
 	
 	filter "action:gmake*"
 		links {"pthread", "GL", "m", "dl", "rt", "X11"}
