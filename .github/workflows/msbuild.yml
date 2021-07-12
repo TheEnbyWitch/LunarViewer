@@ -44,4 +44,5 @@ jobs:
       with:
         name: lunar-artifact
         path: |
-          bin/**/*.exe
+          bin/${{env.BUILD_CONFIGURATION}}/*.exe
+          bin/${{env.BUILD_CONFIGURATION}}/*.dll
