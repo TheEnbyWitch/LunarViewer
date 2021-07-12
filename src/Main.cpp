@@ -104,6 +104,8 @@ const char* GetDirectoryForGame(LunarViewerGame Game)
     case LunarViewerGame::Hexen2:
         return "hexen2";
     }
+
+    return "quake1";
 }
 
 const char* GetDirectoryForCurrentGame()
