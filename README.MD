@@ -1,10 +1,16 @@
 # LunarViewer
 A model viewer for Quake 1 and Hexen 2 using raylib and imgui!
 
+## Features
+ - Support for Quake 1 (IDPO) and Hexen 2 (RAPO) model formats
+
 ## Known issues
 
  - The code doesn't compile on anything that isn't Windows. Currently the only things from windows that I use are the MessageBox (for errors) and the Open File Dialog (Wine seems to be working alright so far)
  - Sometimes when switching the render mode, the model's texture will get unloaded. Switching the render mode again a few times will fix it.
+ - Models with animated textures (groupskins) are not supported yet
+ - Models with groupframes are not supported yet
+ - You can't change the skin that's being previewed
 
 ## Used open source projects and libraries
 
