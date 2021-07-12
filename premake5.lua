@@ -82,6 +82,7 @@ project "LunarViewer"
 		defines{"_WINSOCK_DEPRECATED_NO_WARNINGS", "_CRT_SECURE_NO_WARNINGS", "_WIN32"}
 		links {"raylib.lib"}
 		libdirs {"bin/%{cfg.buildcfg}"}
+		cppdialect "c++17" -- fallback, since doing gnu++ will cause VS to use the default version which will always be old
 
 	filter {"configurations:Debug.DLL OR Debug", "action:vs*"}
 		links {"glslangd", "MachineIndependentd", "GenericCodeGend", "OSDependentd", "OGLCompilerd"}
