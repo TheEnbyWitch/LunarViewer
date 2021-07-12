@@ -40,6 +40,7 @@ Loading Quake 1 MDL files - http://tfc.duke.free.fr/coding/mdl-specs-en.html
 
  - Quake Mapping Discord (specifically Spoike and [Paril](https://www.planetminecraft.com/member/paril)) - help with the RAPO model format and flags
  - [MissLav](https://www.artstation.com/misslavender) - testing on Linux with Wine
+ - [Joshua Barrett](https://github.com/jjbarr) - help with getting the application working on Linux
 
 ## Used open source projects and libraries
 
