@@ -169,7 +169,11 @@ bool GLSLPreprocessor::ProcessShader(const char* shaderCode, const GLSLCompilerS
     shaderCodeToPass += TextFormat("#line 1\n");
     shaderCodeToPass += shaderCode;
 
-	//return false;
+    const char* shaderstr = shaderCodeToPass.c_str();
+
+	
+    // Repository only includes glslang binaries for windows
+#if defined(_MSC_VER) && 0
 
 	glslang::TProgram& program = *new glslang::TProgram;
 	glslang::TShader* shader = new glslang::TShader(GetStage(settings.Stage));
@@ -178,8 +182,6 @@ bool GLSLPreprocessor::ProcessShader(const char* shaderCode, const GLSLCompilerS
 	Resources = DefaultTBuiltInResource;
 	//glslang::TShader::DirStackFileIncluder includer;
 	glslang::TShader::ForbidIncluder includer;
-
-    const char* shaderstr = shaderCodeToPass.c_str();
 
 	shader->setStrings((const char* const*)(&(shaderstr)), 1);
 	shader->setPreamble(preamble.c_str());
@@ -209,6 +211,13 @@ bool GLSLPreprocessor::ProcessShader(const char* shaderCode, const GLSLCompilerS
 	}
 
     shaderstr = result.c_str();
+
+#else 
+    // Don't use glslang to discard unused code and initial preprocessing for now
+
+    result = shaderstr;
+
+#endif 
 
     unsigned int tempshader = 0;
     tempshader = glCreateShader(settings.Stage == GLSLStage::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);

@@ -86,15 +86,15 @@ project "LunarViewer"
 		dependson {"raylib", "physfs"}
 		links {"winmm", "raylib.lib", "kernel32"}
 		libdirs {"bin/%{cfg.buildcfg}"}
-		
+
+		filter "configurations:Debug.DLL OR Debug"
+			links {"glslangd", "MachineIndependentd", "GenericCodeGend", "OSDependentd", "OGLCompilerd"}
+				
+		filter "configurations:Release.DLL OR Release"
+			links {"glslang", "MachineIndependent", "GenericCodeGen", "OSDependent", "OGLCompiler"}
+	
 	filter "action:gmake*"
 		links {"pthread", "GL", "m", "dl", "rt", "X11"}
-
-	filter "configurations:Debug.DLL OR Debug"
-		links {"glslangd", "MachineIndependentd", "GenericCodeGend", "OSDependentd", "OGLCompilerd"}
-			
-	filter "configurations:Release.DLL OR Release"
-		links {"glslang", "MachineIndependent", "GenericCodeGen", "OSDependent", "OGLCompiler"}
 
 project "physfs"
 	kind "StaticLib"
