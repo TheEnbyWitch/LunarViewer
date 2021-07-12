@@ -1,4 +1,4 @@
-name: Linux Build
+name: Linux (x64)
 
 on: [push, pull_request]
 
@@ -49,3 +49,4 @@ jobs:
         name: lunar-artifact
         path: |
           bin/${{env.BUILD_DIR}}/*
+          !bin/${{env.BUILD_DIR}}/*.a
