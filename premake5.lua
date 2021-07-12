@@ -80,7 +80,7 @@ project "LunarViewer"
 	
 	filter "action:vs*"
 		defines{"_WINSOCK_DEPRECATED_NO_WARNINGS", "_CRT_SECURE_NO_WARNINGS", "_WIN32"}
-		links {"winmm", "kernel32"}
+		links {"raylib.lib"}
 		libdirs {"bin/%{cfg.buildcfg}"}
 
 	filter {"configurations:Debug.DLL OR Debug", "action:vs*"}
@@ -90,7 +90,7 @@ project "LunarViewer"
 		links {"glslang", "MachineIndependent", "GenericCodeGen", "OSDependent", "OGLCompiler"}
 	
 	filter "action:gmake*"
-		links {"pthread", "GL", "m", "dl", "rt", "X11"}
+		links {}
 
 project "physfs"
 	kind "StaticLib"
