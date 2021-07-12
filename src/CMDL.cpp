@@ -4,6 +4,7 @@
 #include <rlgl.h>
 #include "external/glad.h"
 #include "ShaderManager.h"
+#include <cstring>
 
 extern Shader shader;
 extern Texture2D ColormapTexture;
@@ -190,9 +191,9 @@ CMDL::CMDL(std::string Path)
 	_isValid = false;
 	HasRaylibMesh = false;
 	CurrentFrame = 0;
-	Model = { 0 };
-	Mesh = { 0 };
-	Material = { 0 };
+	RModel = { 0 };
+	RMesh = { 0 };
+	RMaterial = { 0 };
 	TextureCount = 0;
 	_images = nullptr;
 	_textures = nullptr;
@@ -269,7 +270,7 @@ void CMDL::RefreshModel()
 		Com_Error(ERR_DIALOG, "Failed to load model %s", Path.c_str());
 		return;
 	}
-
+#if defined(_MSC_VER)
 #define CheckBytes(MsgIfFail, Val, ...)		\
 	{									\
 		if(bytesRead < Val)				\
@@ -287,6 +288,53 @@ void CMDL::RefreshModel()
 			return;						\
 		}								\
 	}
+#elif defined(__GNUC__)
+#define CheckBytes(MsgIfFail, Val, args...)		\
+	{									\
+		if(bytesRead < Val)				\
+		{								\
+			Com_Error(ERR_DIALOG, "Expected %u bytes, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead, args ); \
+			return;						\
+		}								\
+	}
+
+#define CheckElems(MsgIfFail, Val, args...)		\
+	{									\
+		if(bytesRead < Val)				\
+		{								\
+			Com_Error(ERR_DIALOG, "Expected %u elements, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead, args ); \
+			return;						\
+		}								\
+	}
+#else
+
+#if __cplusplus >= 202002L
+
+#define CheckBytes(MsgIfFail, Val, ...)		\
+	{									\
+		if(bytesRead < Val)				\
+		{								\
+			Com_Error(ERR_DIALOG, "Expected %u bytes, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead __VA_OPT__(,) __VA_ARGS__ ); \
+			return;						\
+		}								\
+	}
+
+#define CheckElems(MsgIfFail, Val, ...)		\
+	{									\
+		if(bytesRead < Val)				\
+		{								\
+			Com_Error(ERR_DIALOG, "Expected %u elements, got %u.\nThe model might be corrupted!\n\n" MsgIfFail, Val, bytesRead __VA_OPT__(,) __VA_ARGS__ ); \
+			return;						\
+		}								\
+	}
+
+#else 
+
+#error "No __VA_ARGS__ support for when no variadic arguments are specified!"
+
+#endif
+
+#endif
 
 	//FMDLHeader header;
 
@@ -302,7 +350,7 @@ void CMDL::RefreshModel()
 
 	bytesRead = fread(&mdlInfo, 1, sizeof(FMDLInfo), f);
 
-	CheckBytes("Failed to load model info!", sizeof(FMDLInfo));
+	CheckBytes("Failed to load model info!", sizeof(FMDLInfo), 0);
 
 	switch (mdlInfo.Magic)
 	{
@@ -319,7 +367,7 @@ void CMDL::RefreshModel()
 		fseek(f, 0, 0);
 		bytesRead = fread(&MDLHeaderUnion, 1, sizeof(FMDLHeader_IDPO), f);
 
-		CheckBytes("Failed loading the header!", sizeof(FMDLHeader_IDPO));
+		CheckBytes("Failed loading the header!", sizeof(FMDLHeader_IDPO), 0);
 
 		break;
 
@@ -336,7 +384,7 @@ void CMDL::RefreshModel()
 		fseek(f, 0, 0);
 		bytesRead = fread(&MDLHeaderUnion, 1, sizeof(FMDLHeader_RAPO), f);
 
-		CheckBytes("Failed loading the header!", sizeof(FMDLHeader_RAPO));
+		CheckBytes("Failed loading the header!", sizeof(FMDLHeader_RAPO), 0);
 
 		break;
 	}
@@ -391,13 +439,13 @@ void CMDL::RefreshModel()
 	{
 		TexCoords = Com_Calloc(FMDLTexCoord, MDLHeader.NumVerts);
 		bytesRead = fread(TexCoords, sizeof(FMDLTexCoord), MDLHeader.NumVerts, f);
-		CheckElems("Failed reading texture coordinates!", MDLHeader.NumVerts);
+		CheckElems("Failed reading texture coordinates!", MDLHeader.NumVerts, 0);
 	}
 	else if (MDLFormat == EMDLFormat::RavenPolyModel)
 	{
 		TexCoords = Com_Calloc(FMDLTexCoord, GetMDLHeader<FMDLHeader_RAPO>().NumTexCoords);
 		bytesRead = fread(TexCoords, sizeof(FMDLTexCoord), GetMDLHeader<FMDLHeader_RAPO>().NumTexCoords, f);
-		CheckElems("Failed reading texture coordinates!", GetMDLHeader<FMDLHeader_RAPO>().NumTexCoords);
+		CheckElems("Failed reading texture coordinates!", GetMDLHeader<FMDLHeader_RAPO>().NumTexCoords, 0);
 	}
 	else
 	{
@@ -407,7 +455,7 @@ void CMDL::RefreshModel()
 
 	Triangles = Com_Calloc(FMDLTriangle, MDLHeader.NumTris); // new FMDLTriangle[MDLHeader.NumTris];
 	bytesRead = fread(Triangles, sizeof(FMDLTriangle), MDLHeader.NumTris, f);
-	CheckElems("Failed reading triangles!", MDLHeader.NumTris);
+	CheckElems("Failed reading triangles!", MDLHeader.NumTris, 0);
 
 	// Very naive code assuming we have only a single simple frame
 #if 0
@@ -521,17 +569,17 @@ void CMDL::UpdateModel()
 		}
 	}
 
-	memset(&Mesh, 0, sizeof(Mesh));
-	Mesh = { 0 };
+	memset(&RMesh, 0, sizeof(RMesh));
+	RMesh = { 0 };
 
 	//Mesh.vertexCount = Mesh.triangleCount * 3 * 3;// MDLHeader.NumVerts;
-	Mesh.triangleCount = MDLHeader.NumTris;
-	Mesh.vertexCount = Mesh.triangleCount * 3;
+	RMesh.triangleCount = MDLHeader.NumTris;
+	RMesh.vertexCount = RMesh.triangleCount * 3;
 
-	Mesh.vertices = Com_Calloc(float, Mesh.triangleCount * 3 * 3);
-	Mesh.normals = Com_Calloc(float, Mesh.triangleCount * 3 * 3);
-	Mesh.texcoords = Com_Calloc(float, Mesh.triangleCount * 3 * 2);
-	Mesh.tangents = Com_Calloc(float, Mesh.triangleCount * 3 * 4);
+	RMesh.vertices = Com_Calloc(float, RMesh.triangleCount * 3 * 3);
+	RMesh.normals = Com_Calloc(float, RMesh.triangleCount * 3 * 3);
+	RMesh.texcoords = Com_Calloc(float, RMesh.triangleCount * 3 * 2);
+	RMesh.tangents = Com_Calloc(float, RMesh.triangleCount * 3 * 4);
 	//Mesh.indices = new uint16_t[Mesh.triangleCount * 3];
 	//Mesh.colors = new uint8_t[Mesh.triangleCount * 3 * 4];
 
@@ -567,7 +615,7 @@ void CMDL::UpdateModel()
 		Mesh.indices[(v * 3)+1] = Triangles[v].Vertex[2];
 	}*/
 
-	for (uint32_t v = 0; v < Mesh.triangleCount; v++)
+	for (uint32_t v = 0; v < RMesh.triangleCount; v++)
 	{
 		for (uint32_t c = 0; c < 3; c++)
 		{
@@ -591,8 +639,8 @@ void CMDL::UpdateModel()
 				UV = GetUV(TexCoords[tcID], Triangles[v]);
 				break;
 			}
-			Mesh.texcoords[(v * 3 * 2) + (c*2)] = UV.x;
-			Mesh.texcoords[(v * 3 * 2) + (c*2) + 1] = UV.y;
+			RMesh.texcoords[(v * 3 * 2) + (c*2)] = UV.x;
+			RMesh.texcoords[(v * 3 * 2) + (c*2) + 1] = UV.y;
 			/*
 			Mesh.colors[(v * 3 * 4) + (c * 4)] = (UV.x * 255);
 			Mesh.colors[(v * 3 * 4) + (c * 4) + 1] = (UV.y * 255);
@@ -602,15 +650,15 @@ void CMDL::UpdateModel()
 
 			// Converting to Y-up
 
-			Mesh.normals[(v * 3 * 3) + (c * 3)] = Normals[vert->NormalIndex][0];
-			Mesh.normals[(v * 3 * 3) + (c * 3) + 1] = Normals[vert->NormalIndex][2];
-			Mesh.normals[(v * 3 * 3) + (c * 3) + 2] = -Normals[vert->NormalIndex][1];
+			RMesh.normals[(v * 3 * 3) + (c * 3)] = Normals[vert->NormalIndex][0];
+			RMesh.normals[(v * 3 * 3) + (c * 3) + 1] = Normals[vert->NormalIndex][2];
+			RMesh.normals[(v * 3 * 3) + (c * 3) + 2] = -Normals[vert->NormalIndex][1];
 			
 			Vector3 Transformed = GetTransformedVertexPosition(vert->Position);
 			
-			Mesh.vertices[(v * 3 * 3) + (c * 3)] = MDLHeader.Translate[0] ;// Transformed.x;
-			Mesh.vertices[(v * 3 * 3) + (c * 3) + 1] = MDLHeader.Translate[1];//Transformed.z;
-			Mesh.vertices[(v * 3 * 3) + (c * 3) + 2] = MDLHeader.Translate[2];// -Transformed.y;
+			RMesh.vertices[(v * 3 * 3) + (c * 3)] = MDLHeader.Translate[0] ;// Transformed.x;
+			RMesh.vertices[(v * 3 * 3) + (c * 3) + 1] = MDLHeader.Translate[1];//Transformed.z;
+			RMesh.vertices[(v * 3 * 3) + (c * 3) + 2] = MDLHeader.Translate[2];// -Transformed.y;
 			
 			/*
 			Mesh.vertices[(v * 3 * 3) + (c * 3)] =  Transformed.x;
@@ -619,7 +667,7 @@ void CMDL::UpdateModel()
 			*/
 			// this is a tangent buffer, i know, but ill use it for vertex animation and no one is gonna stop me
 			// +0.1f actually makes it work. dont ask me how
-			Mesh.tangents[(v * 3 * 4) + (c*4)] = (((float)vertID+0.1f) / (float)MDLHeader.NumVerts);
+			RMesh.tangents[(v * 3 * 4) + (c*4)] = (((float)vertID+0.1f) / (float)MDLHeader.NumVerts);
 		}
 	}
 
@@ -667,17 +715,17 @@ void CMDL::UpdateModel()
 	//delete[] (vertexAnimData);
 	Com_Free(vertexAnimData);
 
-	UploadMesh(&Mesh, false);
+	UploadMesh(&RMesh, false);
 	
-	Model = LoadModelFromMesh(Mesh);
+	RModel = LoadModelFromMesh(RMesh);
 
-	Material = LoadMaterialDefault();
+	RMaterial = LoadMaterialDefault();
 
-	Material.maps[MATERIAL_MAP_DIFFUSE].texture = _textures[0];
-	Material.maps[1].texture = ColormapTexture;
-	Material.maps[2].texture = PaletteTexture;
-	Material.maps[3].texture = SimpleFrameTexture;
-	Material.maps[4].texture = NormalTexture;
+	RMaterial.maps[MATERIAL_MAP_DIFFUSE].texture = _textures[0];
+	RMaterial.maps[1].texture = ColormapTexture;
+	RMaterial.maps[2].texture = PaletteTexture;
+	RMaterial.maps[3].texture = SimpleFrameTexture;
+	RMaterial.maps[4].texture = NormalTexture;
 
 	ChangeRenderMode(RENDERMODE_DEFAULT, UseAnimInterpolation);
 
@@ -709,12 +757,12 @@ void CMDL::CleanupModel()
 	Com_Free(_images);
 	Com_Free(_textures);
 
-	Com_Free(Mesh.vertices);
-	Com_Free(Mesh.normals);
-	Com_Free(Mesh.texcoords);
-	Com_Free(Mesh.tangents);
+	Com_Free(RMesh.vertices);
+	Com_Free(RMesh.normals);
+	Com_Free(RMesh.texcoords);
+	Com_Free(RMesh.tangents);
 
-	UnloadShader(Shader);
+	UnloadShader(RShader);
 	// Clean up original model data
 	if (Skins)
 	{
@@ -759,7 +807,7 @@ void CMDL::CleanupModel()
 
 void CMDL::DrawModel()
 {
-	SetShaderValue(Shader, GetShaderLocation(Shader, "animData"), &AnimData, SHADER_UNIFORM_IVEC4);
+	SetShaderValue(RShader, GetShaderLocation(RShader, "animData"), &AnimData, SHADER_UNIFORM_IVEC4);
 
 	return;
 }
@@ -793,24 +841,24 @@ void CMDL::ChangeRenderMode(uint32_t renderMode, bool useAnimInterpolation, bool
 	{
 		CurrentRenderMode = (LunarRenderMode)renderMode;
 		UseAnimInterpolation = useAnimInterpolation;
-		UnloadShader(Shader);
+		UnloadShader(RShader);
 
-		Shader = LoadShader(ShaderManager::GetVertexShaderPath("model_quake1_mdl", renderMode, UseAnimInterpolation), ShaderManager::GetFragmentShaderPath("model_quake1_mdl", renderMode, UseAnimInterpolation));
-		Shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(Shader, "matModel");
-		Shader.locs[SHADER_LOC_MATRIX_NORMAL] = GetShaderLocation(Shader, "matNormal");
-		Shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(Shader, "viewPos");
-		Shader.locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(Shader, "textureModelSkin");
-		Shader.locs[SHADER_LOC_MAP_METALNESS] = GetShaderLocation(Shader, "textureColormapLUT");
-		Shader.locs[SHADER_LOC_MAP_NORMAL] = GetShaderLocation(Shader, "texturePaletteLUT");
-		Shader.locs[SHADER_LOC_MAP_ROUGHNESS] = GetShaderLocation(Shader, "textureVertexAnim");
-		Shader.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(Shader, "textureNormalLUT");
+		RShader = LoadShader(ShaderManager::GetVertexShaderPath("model_quake1_mdl", renderMode, UseAnimInterpolation), ShaderManager::GetFragmentShaderPath("model_quake1_mdl", renderMode, UseAnimInterpolation));
+		RShader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(RShader, "matModel");
+		RShader.locs[SHADER_LOC_MATRIX_NORMAL] = GetShaderLocation(RShader, "matNormal");
+		RShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(RShader, "viewPos");
+		RShader.locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(RShader, "textureModelSkin");
+		RShader.locs[SHADER_LOC_MAP_METALNESS] = GetShaderLocation(RShader, "textureColormapLUT");
+		RShader.locs[SHADER_LOC_MAP_NORMAL] = GetShaderLocation(RShader, "texturePaletteLUT");
+		RShader.locs[SHADER_LOC_MAP_ROUGHNESS] = GetShaderLocation(RShader, "textureVertexAnim");
+		RShader.locs[SHADER_LOC_MAP_OCCLUSION] = GetShaderLocation(RShader, "textureNormalLUT");
 
-		SetShaderValue(Shader, GetShaderLocation(Shader, "modelScale"), &MDLHeader.Scale[0], SHADER_UNIFORM_VEC3);
+		SetShaderValue(RShader, GetShaderLocation(RShader, "modelScale"), &MDLHeader.Scale[0], SHADER_UNIFORM_VEC3);
 
-		Material.shader = Shader;
-		Material.maps[1].texture = ColormapTexture;
-		Material.maps[2].texture = PaletteTexture;
-		Material.maps[3].texture = SimpleFrameTexture;
-		Material.maps[4].texture = NormalTexture;
+		RMaterial.shader = RShader;
+		RMaterial.maps[1].texture = ColormapTexture;
+		RMaterial.maps[2].texture = PaletteTexture;
+		RMaterial.maps[3].texture = SimpleFrameTexture;
+		RMaterial.maps[4].texture = NormalTexture;
 	}
 }

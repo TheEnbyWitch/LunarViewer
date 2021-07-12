@@ -200,6 +200,12 @@ struct FMDLTexCoord
 	uint32_t T;
 };
 
+struct FMDLTriangleRAPOData
+{
+	uint16_t Vertex[3];
+	uint16_t ST[3];
+};
+
 struct FMDLTriangle
 {
 	uint32_t IsFrontFace; // 0 = backface, 1 = frontface
@@ -207,11 +213,7 @@ struct FMDLTriangle
 	union
 	{
 		uint32_t Vertex[3];
-		struct RAPOTri_s
-		{
-			uint16_t Vertex[3];
-			uint16_t ST[3];
-		} RAPOTri;
+		FMDLTriangleRAPOData RAPOTri;
 	};
 };
 
@@ -362,10 +364,10 @@ public:
 	bool _isValid;
 
 	bool HasRaylibMesh;
-	Model Model;
-	Mesh Mesh;
-	Material Material;
-	Shader Shader = { 0 };
+	Model RModel;
+	Mesh RMesh;
+	Material RMaterial;
+	Shader RShader = { 0 };
 	Image *_images;
 	Texture2D *_textures;
 	LunarRenderMode CurrentRenderMode = (LunarRenderMode)-1; // force an abysmally large rendermode at first

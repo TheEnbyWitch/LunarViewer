@@ -6,7 +6,7 @@
         {
             "label": "Build Debug",
             "type": "shell",
-            "command": "./premake5 --cc=gcc gmake2 && make",
+            "command": "./premake5 gmake2 && make",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
@@ -16,7 +16,7 @@
         {
             "label": "Build Release",
             "type": "shell",
-            "command": "./premake5 --cc=gcc gmake2 && make config=release_x64",
+            "command": "./premake5 gmake2 && make config=release_x64",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
