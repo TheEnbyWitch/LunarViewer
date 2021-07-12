@@ -262,6 +262,11 @@ int main(int argc, char** argv)
 
     InitWindow(640, 480, "LunarViewer");
 
+    if(!GetWindowHandle())
+    {
+        Com_Error(ERR_FATAL, "Failed to initialize raylib and window!");
+    }
+
     int screenWidth = GetMonitorWidth(GetCurrentMonitor());
     int screenHeight = GetMonitorHeight(GetCurrentMonitor());
 
@@ -424,7 +429,7 @@ int main(int argc, char** argv)
         ImGui::NewFrame();
         ImGui_ImplRaylib_ProcessEvent();
 
-#ifdef _DEBUG
+#ifdef DEBUG
         ImGui::ShowDemoWindow();
 #endif
 
@@ -470,7 +475,23 @@ int main(int argc, char** argv)
             }
             ImGui::EndMenu();
         }
-        ImGui::MenuItem("About");
+        if(ImGui::MenuItem("About"))
+        {
+            ImGui::OpenPopup("About");
+        }
+        bool unused_open = true;
+        if (ImGui::BeginPopupModal("About", &unused_open, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive), "LunarViewer");
+            ImGui::Text("Created and maintained by Luna Ryuko");
+            
+            if(ImGui::Button("GitHub"))
+                OpenURL("https://github.com/LunaRyuko/LunarViewer");
+
+            if (ImGui::Button("Close"))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
         ImGui::EndMenuBar();
 
         ImGuiID MainDockID = ImGui::GetID("MainDockSpace");
@@ -487,6 +508,7 @@ int main(int argc, char** argv)
         //bool AnyWindowFocused = ImGui::IsAnyItemHovered();
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::SetNextWindowDockID(MainDockID, ImGuiCond_FirstUseEver);
         ImGui::Begin("Viewport");
         if (DesiredViewportSize.x != ImGui::GetContentRegionAvail().x
             || DesiredViewportSize.y != ImGui::GetContentRegionAvail().y)
@@ -607,7 +629,7 @@ int main(int argc, char** argv)
         //DrawGrid(24, 1.0f * UnitScale);
 
         // We have a model loaded!
-        if (CurrentModel && CurrentModel->IsValid())
+        if (CurrentModel && CurrentModel->IsValid()/* && CurrentModel->HasRaylibMesh*/)
         {
             //DrawSphereWires(CurrentModel->MDLHeader.EyePosition, 1.f * UnitScale, 7, 12, RED);
             //rlDrawRenderBatchActive();
@@ -644,10 +666,9 @@ int main(int argc, char** argv)
                 {
                     glEnable(GL_STENCIL_TEST);
                     glEnable(GL_CLIP_DISTANCE0);
-
-                    glStencilMask(0xFF);
-                    glStencilFunc(GL_ALWAYS, 0, 0xFF);
                 }
+                glStencilMask(0xFF);
+                glStencilFunc(GL_ALWAYS, 0, 0xFF);
                 glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
                 DrawMesh(CurrentModel->Mesh, CurrentModel->Material, root);
@@ -702,6 +723,7 @@ int main(int argc, char** argv)
                     EndBlendMode();
                     glDepthMask(GL_TRUE);
                 }
+
                 EndMode3D();
                 // LUNA: This was a blur postprocess effect for the floor. dunno if its desired
                 if (false)
@@ -728,17 +750,17 @@ int main(int argc, char** argv)
 
                 GL_PopGroupMarker();
             }
-            else
+            else 
             {
                 EndMode3D();
             }
         }
         else 
         {
+            DrawGrid(32, 4.f);
             EndMode3D();
         }
 
-        ImGui::SetNextWindowDockID(MainDockID, ImGuiCond_FirstUseEver);
         if (ImGui::Begin("Model"))
         {
             if (CurrentModel && CurrentModel->IsValid())

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-#ifdef _DEBUG
+#ifdef DEBUG
 // LUNA: This is slow. I did not write this with the intent of it being performant, only to see where I forgot to free memory
 #define TRACK_MEMORY 1
 #endif
@@ -23,10 +23,21 @@ enum
 
 char* va(const char* fmt, ...);
 
-void Com_Printf(char* fmt, ...);
+void Com_Printf(const char* fmt, ...);
+
+// LUNA: When I first wrote this code in 2017, I did not think that it would still cause issues in 2021
+// Thankfully, C++20 supports it, but you need to use an experimental preprocessor in VS
+// Also, GNU++17 supports this!
+#if __cplusplus >= 202002L || (defined(__GNUC__) && __cplusplus >= 201703L)
 
 #define Com_Error(level, fmt, ...) \
 	Com_ErrorEx(level, va("%s:%d -> %s()", __FILE__, __LINE__, __FUNCTION__), va(fmt, __VA_ARGS__));
+
+#else 
+
+#error "No __VA_ARGS__ support for when no variadic arguments are specified!"
+
+#endif
 
 void Com_ErrorEx(int level, char* source, char* msg);
 

@@ -4,7 +4,9 @@
 
 #ifdef _WIN32
 #include <Windows.h>
-#endif
+#else
+#include <signal.h>
+#endif 
 
 #include "Common.h"
 #include "external/glad.h"
@@ -36,6 +38,22 @@ void Com_Printf(char* fmt, ...)
 	va_end(args);
 }
 
+void GL_PushGroupMarker(uint32_t length, const char* group)
+{
+#ifdef DEBUG
+	if(glPushGroupMarkerEXT)
+		glPushGroupMarkerEXT(length, group);
+#endif
+}
+
+void GL_PopGroupMarker()
+{
+#ifdef DEBUG
+	if(glPopGroupMarkerEXT)
+		glPopGroupMarkerEXT();
+#endif
+}
+
 void Com_ErrorEx(int level, char* source, char* msg)
 {
 	printf("ERROR: %s\n%s\n", source, msg);
@@ -49,13 +67,19 @@ void Com_ErrorEx(int level, char* source, char* msg)
 
 #ifdef _WIN32
 	if (IsDebuggerPresent())
+#endif
 	{
 		if (level > ERR_NONE)
 		{
-			__debugbreak(); // if we're running with a debugger, break
+			// if we're running with a debugger, break
+#ifdef _WIN32
+			__debugbreak(); 
+#else
+			raise(SIGTRAP);
+#endif
 		}
 	}
-#endif
+//#endif
 
 	if (level == ERR_FATAL)
 	{
@@ -63,21 +87,11 @@ void Com_ErrorEx(int level, char* source, char* msg)
 	}
 }
 
-void GL_PushGroupMarker(uint32_t length, const char* group)
-{
-	if(glPushGroupMarkerEXT)
-		glPushGroupMarkerEXT(length, group);
-}
-
-void GL_PopGroupMarker()
-{
-	if(glPopGroupMarkerEXT)
-		glPopGroupMarkerEXT();
-}
-
+#if defined(TRACK_MEMORY)
 #include <unordered_map>
 
 std::unordered_map<void*, FMemTrack> Memory;
+#endif
 
 void AddMemToTracker(void* ptr, FMemTrack mem)
 {
@@ -108,7 +122,7 @@ void CheckForMemoryLeaks()
 {
 #if defined(TRACK_MEMORY)
 	bool foundLeak = false;
-	for each (auto kvp in Memory)
+	for (auto kvp : Memory)
 	{
 		if (kvp.second.call_info.Check != 0)
 		{
