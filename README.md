@@ -4,6 +4,8 @@
 
 A model viewer for Quake 1 and Hexen 2 with a focus on accurate representation.
 
+![](docs/viewer_pic.png)
+
 Powered by raylib and dear imgui!
 
 ## Features
