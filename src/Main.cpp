@@ -482,11 +482,11 @@ int main(int argc, char** argv)
         bool unused_open = true;
         if (ImGui::BeginPopupModal("About", &unused_open, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive), "LunarViewer");
+            ImGui::TextColored(ImVec4{250.f/255.f, 68.f/255.f, 117.f/255.f, 1.f}, "LunarViewer");
             ImGui::Text("Created and maintained by Luna Ryuko");
             
             if(ImGui::Button("GitHub"))
-                OpenURL("https://github.com/LunaRyuko/LunarViewer");
+                OpenURL("https://github.com/LunaRyuko/LunarViewer"); 
 
             if (ImGui::Button("Close"))
                 ImGui::CloseCurrentPopup();
