@@ -1,6 +1,6 @@
 # LunarViewer
 
-[![Windows Build](https://github.com/LunaRyuko/LunarViewer/actions/workflows/msbuild.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/msbuild.yml) [![Linux Build](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml)
+[![Windows (x64)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/windows.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/windows.yml) [![Linux (x64)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml)
 
 A model viewer for Quake 1 and Hexen 2 with a focus on accurate representation.
 
