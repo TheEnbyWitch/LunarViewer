@@ -17,6 +17,7 @@ Powered by raylib and dear imgui!
 
 ## Known issues
 
+ - Linux doesn't have a File Select Dialog yet. The model needs to be loaded via a launch argument (like `LunarViewer ~/id1/progs/shambler.mdl`).
  - Sometimes when switching the render mode, the model's texture will get unloaded. Switching the render mode again a few times will fix it.
  - Models with animated textures (groupskins) are not supported yet
  - Models with groupframes are not supported yet
