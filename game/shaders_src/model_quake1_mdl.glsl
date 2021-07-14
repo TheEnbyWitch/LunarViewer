@@ -186,7 +186,7 @@ void FSMain(void)
 	vec3 light = vec3(0.0);
 	vec3 fragPosition = vec3(0.0);
 
-	float PaletteIndex = texture2D(textureModelSkin, fragTexCoord).r + (0.1 / 255.0);
+	float PaletteIndex = texture2D(textureModelSkin, fragTexCoord).r + (0.0 / 255.0);
 
 	// Alpha Test
 	if(isAlphaTested && PaletteIndex <= 0.0)
