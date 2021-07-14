@@ -90,6 +90,8 @@ void ViewerLoadModel(std::string Path)
     CurrentModel = Com_New(CMDL, Path);
     CurrentModel->Init(Path);
     CurrentModel->RefreshModel();
+
+    SetWindowTitle(TextFormat("LunarViewer - %s", Path.c_str()));
 }
 
 Texture2D ColormapTexture = { 0 };
@@ -303,6 +305,9 @@ int main(int argc, char** argv)
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_NavEnableKeyboard;
 
+    ImFont *fUnorm = io.Fonts->AddFontFromFileTTF("fonts/Ubuntu-Regular.ttf", 14.f);
+    ImFont *fUtitle = io.Fonts->AddFontFromFileTTF("fonts/Ubuntu-Regular.ttf", 40.f);
+
     ImGui::StyleColorsDark();
 
     ImVec4* colors = ImGui::GetStyle().Colors;
@@ -348,7 +353,7 @@ int main(int argc, char** argv)
     colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
     colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
     colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-    colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+    colors[ImGuiCol_PlotHistogram] = ImVec4(0.980f, 0.537f, 0.259f, 1.000f);
     colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
     colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
     colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);
@@ -422,8 +427,10 @@ int main(int argc, char** argv)
         ::ViewerLoadModel(argv[1]);
     }
 
+    bool Exit = false;
+
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!WindowShouldClose() && !Exit)    // Detect window close button or ESC key
     {
         ImGui_ImplRaylib_NewFrame();
         ImGui::NewFrame();
@@ -452,7 +459,7 @@ int main(int argc, char** argv)
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace Demo", nullptr, window_flags);
+        ImGui::Begin("MainDockSpace", nullptr, window_flags);
         ImGui::PopStyleVar(3);
 
         ImGui::BeginMenuBar();
@@ -472,6 +479,10 @@ int main(int argc, char** argv)
                     ViewerLoadModel(result);
                 }
 
+            }
+            if (ImGui::MenuItem("Exit"))
+            {
+                Exit = true;
             }
             ImGui::EndMenu();
         }
@@ -523,6 +534,22 @@ int main(int argc, char** argv)
         ImGui::Image((ImTextureID)Viewport.texture.id, ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
         ImGui::PopID();
         bool IsViewportFocused = ImGui::IsWindowHovered();
+
+        ImGui::SetCursorPos(ImVec2(0.f,
+            ImGui::GetWindowContentRegionMin().y + 8.0f));
+
+        ImGui::Indent(ImGui::GetWindowContentRegionMin().x + 8.0f);
+
+        ImGui::PushFont(fUtitle);
+        ImGui::TextColored(ImVec4{ 250.f / 255.f, 68.f / 255.f, 117.f / 255.f, 1.f }, "LunarViewer");
+        ImGui::PopFont();
+        if (CurrentModel)
+        {
+            ImGui::Text("%s", CurrentModel->Path.c_str());
+        }
+    
+        ImGui::Unindent(ImGui::GetWindowContentRegionMin().x + 8.0f);
+
         ImGui::End();
         ImGui::PopStyleVar();
 
@@ -1002,6 +1029,59 @@ int main(int argc, char** argv)
         ImGui::End();
 
         ImGui::Begin("Animation");
+
+        if (CurrentModel)
+        {
+            ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+            float ProgPosY = ImGui::GetCursorPos().y;
+            float ProgPosX = ImGui::GetCursorPos().x;
+            ImGui::ProgressBar(0.f, ImVec2(-FLT_MIN, 0), "");
+            float ProgSizeX = ImGui::GetItemRectSize().x;
+            float ProgSizeY = ImGui::GetItemRectSize().y;
+            float ProgWidth = (float)(((GViewerSettings.AnimEnd + 1) - GViewerSettings.AnimBegin) / (float)(CurrentModel->MDLHeader.NumFrames)) * ProgSizeX;
+            float ProgStep = (float)((1.f) / (float)(CurrentModel->MDLHeader.NumFrames)) * ProgSizeX;
+            float ProgX = (float)(GViewerSettings.AnimBegin / (float)(CurrentModel->MDLHeader.NumFrames)) * ProgSizeX;
+            float GrabberWidth = 4.f;
+            ImGui::SetCursorPos(ImVec2(ProgPosX + ProgX, ProgPosY));
+            ImGui::ProgressBar((float)(CurrentModel->AnimData.TargetFrame - GViewerSettings.AnimBegin) / (float)(GViewerSettings.AnimEnd - GViewerSettings.AnimBegin),
+                ImVec2(ProgWidth, 0), "");
+
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            /*
+            for (int i = 0; i < CurrentModel->MDLHeader.NumFrames; i++)
+            {
+                draw_list->AddLine(ImVec2(canvas_pos.x + (i * ProgStep), canvas_pos.y - 2), ImVec2(canvas_pos.x + (i * ProgStep), canvas_pos.y + ProgSizeY), IM_COL32(255, 255, 255, 255), 1.f);
+            }
+            */
+
+            /*
+            ImVec2 dragDelta = ImVec2(0, 0);
+
+            ImGui::SetCursorPos(ImVec2(ProgPosX + ProgX, ProgPosY));
+            ImGui::Button("", ImVec2(ProgStep, ProgSizeY));
+            static int SavedBegin = 0;
+            static int SavedEnd = 0;
+            static int FrameOffset = 0;
+            static bool Saved = false;
+            if (ImGui::IsMouseDragging(0, 1.f) && ImGui::IsItemActive())
+            {
+                if (!Saved)
+                {
+                    SavedBegin = GViewerSettings.AnimBegin;
+                    SavedEnd = GViewerSettings.AnimEnd;
+                    Saved = true;
+                }
+                dragDelta = ImGui::GetMouseDragDelta(0, 1.0f);
+                int FrameOffset = dragDelta.x / ProgStep;
+                GViewerSettings.AnimBegin = Clamp(SavedBegin + FrameOffset, 0.f, (float)(CurrentModel->MDLHeader.NumFrames - 1));
+            }
+            else
+            {
+                Saved = false;
+            }
+            */
+        }
+
         ImGui::BeginTable("Animation Stuff", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_BordersInnerV);
         ImGui::TableNextColumn();
         if (CurrentModel)
@@ -1016,6 +1096,13 @@ int main(int argc, char** argv)
             }
 
             ImGui::DragIntRange2("Anim Range", &GViewerSettings.AnimBegin, &GViewerSettings.AnimEnd, 1.0f, 0, CurrentModel->MDLHeader.NumFrames-1, "%u", "%u", ImGuiSliderFlags_AlwaysClamp );
+
+            /*
+            ImGui::Text("%d %d %d %d", CurrentModel->AnimData.CurrentFrame,
+                CurrentModel->AnimData.TargetFrame,
+                CurrentModel->AnimData.FrameCount,
+                CurrentModel->AnimData.Interpolate);*/
+
 
             ImGui::TableNextColumn();
 
@@ -1084,8 +1171,9 @@ int main(int argc, char** argv)
             */
         }
 
+        /*
         DrawRectangle(0, 0, 355, 64, Color{ 0,0,0,64 });
-        DrawText("LunarViewer", 4, 2, 40, Color{ 250, 66, 117, 255 });
+        DrawText("LunarViewer",  4, 2, 40, Color{ 250, 66, 117, 255 });
         char VAPrints[1024];
         sprintf(VAPrints, "Virtual Resolution (%dx%d): %s", 320, 240, GViewerSettings.UseVirtualResolution ? "ON" : "OFF");
         DrawText(VAPrints, 4, 44, 20, WHITE);
@@ -1097,6 +1185,7 @@ int main(int argc, char** argv)
             DrawText(VAPrints, 4 + 2, 44 + 22 +2, 20, BLACK);
             DrawText(VAPrints, 4, 44+22, 20, WHITE);
         }
+        */
 
         EndTextureMode();
 
