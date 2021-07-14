@@ -316,7 +316,8 @@ int main(int argc, char** argv)
     colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.94f);
     colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
-    colors[ImGuiCol_Border] = ImVec4(0.50f, 0.43f, 0.45f, 0.50f);
+    //colors[ImGuiCol_Border] = ImVec4(0.50f, 0.43f, 0.45f, 0.50f);
+    colors[ImGuiCol_Border] = ImVec4(0.50f, 0.33f, 0.38f, 0.23f);
     colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     colors[ImGuiCol_FrameBg] = ImVec4(0.48f, 0.16f, 0.25f, 0.54f);
     colors[ImGuiCol_FrameBgHovered] = ImVec4(0.98f, 0.26f, 0.46f, 0.40f);
@@ -338,7 +339,8 @@ int main(int argc, char** argv)
     colors[ImGuiCol_Header] = ImVec4(0.98f, 0.26f, 0.46f, 0.31f);
     colors[ImGuiCol_HeaderHovered] = ImVec4(0.98f, 0.26f, 0.46f, 0.80f);
     colors[ImGuiCol_HeaderActive] = ImVec4(0.98f, 0.26f, 0.46f, 1.00f);
-    colors[ImGuiCol_Separator] = ImVec4(0.50f, 0.43f, 0.45f, 0.50f);
+    //colors[ImGuiCol_Separator] = ImVec4(0.50f, 0.43f, 0.45f, 0.50f);
+    colors[ImGuiCol_Separator] = ImVec4(0.50f, 0.27f, 0.34f, 0.50f);
     colors[ImGuiCol_SeparatorHovered] = ImVec4(0.75f, 0.10f, 0.28f, 0.78f);
     colors[ImGuiCol_SeparatorActive] = ImVec4(0.75f, 0.10f, 0.28f, 1.00f);
     colors[ImGuiCol_ResizeGrip] = ImVec4(0.98f, 0.26f, 0.46f, 0.20f);
@@ -374,6 +376,7 @@ int main(int argc, char** argv)
 
     ImGui::GetStyle().WindowTitleAlign = ImVec2(0.5f, 0.5f);
     ImGui::GetStyle().WindowMenuButtonPosition = ImGuiDir_Right;
+    ImGui::GetStyle().FrameBorderSize = 1.f;
 
     ImGui_ImplRaylib_Init();
     ImGui_ImplRaylib_LoadDefaultFontAtlas();
@@ -1032,6 +1035,7 @@ int main(int argc, char** argv)
 
         if (CurrentModel)
         {
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
             ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
             float ProgPosY = ImGui::GetCursorPos().y;
             float ProgPosX = ImGui::GetCursorPos().x;
@@ -1045,6 +1049,8 @@ int main(int argc, char** argv)
             ImGui::SetCursorPos(ImVec2(ProgPosX + ProgX, ProgPosY));
             ImGui::ProgressBar((float)(CurrentModel->AnimData.TargetFrame - GViewerSettings.AnimBegin) / (float)(GViewerSettings.AnimEnd - GViewerSettings.AnimBegin),
                 ImVec2(ProgWidth, 0), "");
+
+            ImGui::PopStyleVar();
 
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
             /*
