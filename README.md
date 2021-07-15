@@ -1,3 +1,5 @@
+<center>![](docs/viewer_pic.png)</center>
+
 # LunarViewer
 
 [![Windows (x64)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/windows.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/windows.yml) [![Linux (x64)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml)
@@ -41,6 +43,7 @@ Loading Quake 1 MDL files - http://tfc.duke.free.fr/coding/mdl-specs-en.html
  - Quake Mapping Discord (specifically Spoike and [Paril](https://www.planetminecraft.com/member/paril)) - help with the RAPO model format and flags
  - [MissLav](https://www.artstation.com/misslavender) - testing on Linux with Wine
  - [Joshua Barrett](https://github.com/jjbarr) - help with getting the application working on Linux
+ - [Melanie Kat](https://melaniekat.com/) - the very cool icon
 
 ## Used open source projects and libraries
 

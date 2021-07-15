@@ -251,6 +251,9 @@ bool Anims_ArrayGetter(void* data, int index, const char** out)
     return true;
 }
 
+Image LVIcon;
+Texture2D LVTexture;
+
 int main(int argc, char** argv)
 {
     // Initialization
@@ -299,6 +302,13 @@ int main(int argc, char** argv)
         Com_Error(ERR_FATAL, "Host machine is big endian, which is not currently supported!");
     }
 
+    LVIcon = LoadImage("assets/lv_icon.png");
+    ImageMipmaps(&LVIcon);
+    LVTexture = LoadTextureFromImage(LVIcon);
+
+    ImageResize(&LVIcon, 32, 32);
+
+    SetWindowIcon(LVIcon);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -306,7 +316,7 @@ int main(int argc, char** argv)
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_NavEnableKeyboard;
 
     ImFont *fUnorm = io.Fonts->AddFontFromFileTTF("fonts/Ubuntu-Regular.ttf", 14.f);
-    ImFont *fUtitle = io.Fonts->AddFontFromFileTTF("fonts/Ubuntu-Regular.ttf", 40.f);
+    ImFont *fUtitle = io.Fonts->AddFontFromFileTTF("fonts/Ubuntu-Regular.ttf", 32.f);
 
     ImGui::StyleColorsDark();
 
@@ -494,13 +504,61 @@ int main(int argc, char** argv)
             ImGui::OpenPopup("About");
         }
         bool unused_open = true;
-        if (ImGui::BeginPopupModal("About", &unused_open, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("About", &unused_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
         {
-            ImGui::TextColored(ImVec4{250.f/255.f, 68.f/255.f, 117.f/255.f, 1.f}, "LunarViewer");
-            ImGui::Text("Created and maintained by Luna Ryuko");
+            // LUNA: Very Hacky™!!
+            if (ImGui::BeginTable("aboutaligncenterlogo", 3, ImGuiTableFlags_SizingFixedFit))
+            {
+                ImGui::TableSetupColumn("emp", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("emp2", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("emp3", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TableNextColumn();
+                ImGui::Image(LVTexture.id, ImVec2(LVTexture.width, LVTexture.height));
+                ImGui::TableNextColumn();
+                ImGui::EndTable();
+            }
+            if (ImGui::BeginTable("aboutaligncenter", 3, ImGuiTableFlags_SizingFixedFit))
+            {
+                ImGui::TableSetupColumn("emp", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("emp2", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("emp3", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TableNextColumn();
+                ImGui::PushFont(fUtitle);
+                ImGui::TextColored(ImVec4{ 250.f / 255.f, 68.f / 255.f, 117.f / 255.f, 1.f }, "LunarViewer");
+                ImGui::PopFont();
+                ImGui::TableNextColumn();
+                ImGui::EndTable();
+            }
+            if (ImGui::BeginTable("aboutaligncenter2", 3, ImGuiTableFlags_SizingFixedFit))
+            {
+                ImGui::TableSetupColumn("emp", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("emp2", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("emp3", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TableNextColumn();
+                ImGui::Text("Created and maintained by Luna Ryuko");
+                ImGui::TableNextColumn();
+                ImGui::EndTable();
+            }
             
-            if(ImGui::Button("GitHub"))
-                OpenURL("https://github.com/LunaRyuko/LunarViewer"); 
+            if (ImGui::BeginTable("aboutaligncenter3", 3, ImGuiTableFlags_SizingFixedFit))
+            {
+                ImGui::TableSetupColumn("emp", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("emp2", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("emp3", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TableNextColumn();
+                if (ImGui::Button("GitHub"))
+                    OpenURL("https://github.com/LunaRyuko/LunarViewer");
+                ImGui::TableNextColumn();
+                ImGui::EndTable();
+            }
 
             if (ImGui::Button("Close"))
                 ImGui::CloseCurrentPopup();
@@ -543,12 +601,17 @@ int main(int argc, char** argv)
 
         ImGui::Indent(ImGui::GetWindowContentRegionMin().x + 8.0f);
 
-        ImGui::PushFont(fUtitle);
+        /*ImGui::PushFont(fUtitle);
         ImGui::TextColored(ImVec4{ 250.f / 255.f, 68.f / 255.f, 117.f / 255.f, 1.f }, "LunarViewer");
         ImGui::PopFont();
+        */
         if (CurrentModel)
         {
             ImGui::Text("%s", CurrentModel->Path.c_str());
+            if (CurrentModel->HasRaylibMesh)
+            {
+
+            }
         }
     
         ImGui::Unindent(ImGui::GetWindowContentRegionMin().x + 8.0f);
@@ -689,6 +752,7 @@ int main(int argc, char** argv)
                 CurrentModel->DrawModel();
 
                 Matrix root = MatrixIdentity();
+                root = MatrixMultiply(root, MatrixRotate(Vector3{ 0, 1, 0 }, GetTime()));
                 //root = MatrixMultiply(root, MatrixTranslate(0.0f, GViewerSettings.FloorOffset, 0.0f));
 
                 //glEnable(GL_ALPHA_TEST);

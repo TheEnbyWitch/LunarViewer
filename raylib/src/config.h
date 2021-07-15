@@ -121,7 +121,7 @@
 // Module: textures - Configuration Flags
 //------------------------------------------------------------------------------------
 // Selecte desired fileformats to be supported for image data loading
-//#define SUPPORT_FILEFORMAT_PNG      1
+#define SUPPORT_FILEFORMAT_PNG      1
 //#define SUPPORT_FILEFORMAT_BMP      1
 #define SUPPORT_FILEFORMAT_TGA      1
 //#define SUPPORT_FILEFORMAT_JPG      1
