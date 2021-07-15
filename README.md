@@ -1,14 +1,15 @@
-![](docs/lv_logo_256.png)
+<p align="center">
+<img src="https://github.com/LunaRyuko/LunarViewer/blob/main/docs/lv_logo_256.png">
 
-# LunarViewer
+<h1 align="center">LunarViewer</h1>
 
-[![Windows (x64)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/windows.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/windows.yml) [![Linux (x64)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml)
-
-A model viewer for Quake 1 and Hexen 2 with a focus on accurate representation.
-
-![](docs/viewer_pic.png)
-
+<p align="center">
+<a href="https://github.com/LunaRyuko/LunarViewer/actions/workflows/windows.yml"><img src="https://github.com/LunaRyuko/LunarViewer/actions/workflows/windows.yml/badge.svg?branch=main" alt="Windows (x64)"></a>
+<a href="https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml"><img src="https://github.com/LunaRyuko/LunarViewer/actions/workflows/linux.yml/badge.svg?branch=main" alt="Linux (x64)"></a><br>
+A model viewer for Quake 1 and Hexen 2 with a focus on accurate representation.<br><br>
+<img align="center" src="https://github.com/LunaRyuko/LunarViewer/blob/main/docs/viewer_pic.png"><br><br>
 Powered by raylib and dear imgui!
+</p>
 
 ## Features
 
