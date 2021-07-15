@@ -1,4 +1,4 @@
-<center>![](docs/viewer_pic.png)</center>
+![](docs/lv_logo_256.png)
 
 # LunarViewer
 
