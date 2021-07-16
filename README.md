@@ -54,7 +54,7 @@ https://github.com/raysan5/raylib/
 
 Used as the rendering backend. The app also uses normal OpenGL code to do stuff that raylib itself doesn't expose.
 
-The code was modified to fix the normal matrix (it was in view space and not world space) and to allow for the use of the stencil buffer.
+The code was modified to ~~fix the normal matrix (it was in view space and not world space)~~ ([It's fixed!](https://github.com/raysan5/raylib/commit/c4804c4c0cc3f20545fd2280a3501a463c8f92e7)) and to allow for the use of the stencil buffer.
 
 ### ImGui
 
