@@ -249,11 +249,15 @@ struct FMDLSimpleFrame : FMDLFrameBase
 
 struct FMDLGroupFrame : FMDLFrameBase
 {
+	int16_t NumFrames;
 	FMDLVertex BBoxMin;
 	FMDLVertex BBoxMax;
-	float Time; // Interval between frames
+	float* Time; // Time each frame happens at
 
-	FMDLSimpleFrame* Frames;
+	FMDLSimpleFrame** Frames;
+
+	// EXTRA
+	uint32_t PoseBegin;
 };
 
 struct FMDLShaderAnimData
@@ -372,6 +376,8 @@ public:
 	Texture2D *_textures;
 	LunarRenderMode CurrentRenderMode = (LunarRenderMode)-1; // force an abysmally large rendermode at first
 	bool UseAnimInterpolation = true;
+	uint32_t AnimPoses = 0;
+	std::map<uint32_t, uint32_t> AnimPoseToFrameMap;
 
 	FMDLShaderAnimData AnimData;
 
