@@ -698,12 +698,12 @@ int main(int argc, char** argv)
                 ImGui::Spacing();
                 ImGui::Spacing();
 
-                for each (auto wrn in Warnings)
+                for (auto wrn : Warnings)
                 {
                     ImGui::TextColored(ImVec4(1.f, 1.0f, 0.2f, 1.f), "%s", wrn.c_str());
                 }
 
-                for each (auto err in Errors)
+                for (auto err : Errors)
                 {
                     ImGui::TextColored(ImVec4(1.f, 0.1f, 0.1f, 1.f), "%s", err.c_str());
                 }
