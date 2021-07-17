@@ -23,7 +23,6 @@ Powered by raylib and dear imgui!
  - Linux doesn't have a File Select Dialog yet. The model needs to be loaded via a launch argument (like `LunarViewer ~/id1/progs/shambler.mdl`). I'm planning on implementing one using ImGui that wouldn't require platform specific implementations and it would allow me to add model previews within that.
  - Sometimes when switching the render mode, the model's texture will get unloaded. Switching the render mode again a few times will fix it.
  - Models with animated textures (groupskins) are not supported yet
- - Models with groupframes are not supported yet
  - You can't change the skin that's being previewed
  - No config of any kind is saved (apart from imgui)
  - There's a slight offset on the UVs that I need to look into
