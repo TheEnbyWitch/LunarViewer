@@ -472,9 +472,12 @@ void CMDL::RefreshModel()
 
 	//Frames = new FMDLFrameBase * [MDLHeader.NumFrames];
 	Frames = Com_Calloc(FMDLFrameBase *, MDLHeader.NumFrames);
-
+	FMDLAnimation AllAnim;
+	strcpy(AllAnim.Name, "All");
+	AllAnim.Begin = 0;
 	FMDLAnimation CurrentAnim;
 	bool FoundAnim = false;
+	AnimPoses = 0;
 
 	for (uint32_t i = 0; i < MDLHeader.NumFrames; i++)
 	{
@@ -491,7 +494,7 @@ void CMDL::RefreshModel()
 			
 			// lets read both at once, why not!
 			bytesRead = fread(&CurrentFrame->BBoxMin, 1, sizeof(FMDLVertex) * 2, f);
-			CheckBytes("Failed reading the bouyending box for frame %u (type = simple)", sizeof(FMDLVertex) * 2, i);
+			CheckBytes("Failed reading the bounding box for frame %u (type = simple)", sizeof(FMDLVertex) * 2, i);
 
 			bytesRead = fread(&CurrentFrame->Name, 1, 16, f);
 			CheckBytes("Failed reading name for frame %u (type = simple)", 16, i);
@@ -510,27 +513,94 @@ void CMDL::RefreshModel()
 					AnimationSets.push_back(CurrentAnim);
 				}
 				strcpy(CurrentAnim.Name, trimmedName.c_str());
-				CurrentAnim.Begin = i;
+				CurrentAnim.Begin = AnimPoses;
 				FoundAnim = true;
 			}
-			CurrentAnim.End = i;
+			CurrentAnim.End = AnimPoses;
 
 			// Fill up the vertex buffer for posterity, but technically we dont need it
-			if (i == 0)
+			if (AnimPoses == 0)
 			{
 				Vertices = Com_Calloc(FMDLVertex, MDLHeader.NumVerts);//new FMDLVertex[MDLHeader.NumVerts];
 				memcpy(Vertices, CurrentFrame->Vertex, sizeof(FMDLVertex)*MDLHeader.NumVerts);
 			}
 
+			AnimPoseToFrameMap[AnimPoses] = i;
+
 			Frames[i] = CurrentFrame;
+			AnimPoses++;
 		}
 		else
 		{
-			Com_Error(ERR_DIALOG, "Group frames are not supported yet!");
+			FMDLGroupFrame* CurrentFrame = Com_Calloc(FMDLGroupFrame, 1);
+			CurrentFrame->Type = 1;
+
+			bytesRead = fread(&CurrentFrame->NumFrames, 1, sizeof(int32_t), f);
+			CheckBytes("Failed reading the frame count for frame %u (type = group)", sizeof(int32_t), i);
+
+			// lets read both at once, why not!
+			bytesRead = fread(&CurrentFrame->BBoxMin, 1, sizeof(FMDLVertex) * 2, f);
+			CheckBytes("Failed reading the bounding box for frame %u (type = group)", sizeof(FMDLVertex) * 2, i);
+
+			CurrentFrame->Time = Com_Calloc(float, CurrentFrame->NumFrames);
+
+			bytesRead = fread(CurrentFrame->Time, 1, CurrentFrame->NumFrames * sizeof(float), f);
+			CheckBytes("Failed reading the time intervals for frame %u (type = group)", CurrentFrame->NumFrames * sizeof(float), i);
+
+			CurrentFrame->Frames = Com_Calloc(FMDLSimpleFrame*, CurrentFrame->NumFrames);
+
+			CurrentFrame->PoseBegin = AnimPoses;
+
+			for (int16_t o = 0; o < CurrentFrame->NumFrames; o++)
+			{
+				CurrentFrame->Frames[o] = Com_Calloc(FMDLSimpleFrame, MDLHeader.NumVerts);
+
+				// i just found out group frames are just multiple simple frames
+				// this sucks man
+
+				bytesRead = fread(&CurrentFrame->Frames[o]->BBoxMin, 1, sizeof(FMDLVertex) * 2, f);
+				CheckBytes("Failed reading the bounding box for frame %u:%d", sizeof(FMDLVertex) * 2, i, o);
+
+				bytesRead = fread(&CurrentFrame->Frames[o]->Name, 1, 16, f);
+				CheckBytes("Failed reading name for frame %u:%d", 16, i, o);
+
+				std::string trimmedName = std::string(TextFormat("Group%03d_", i)) + TrimAnimName(CurrentFrame->Frames[o]->Name);
+
+				if (strcmp(CurrentAnim.Name, trimmedName.c_str()) != 0)
+				{
+					if (FoundAnim)
+					{
+						AnimationSets.push_back(CurrentAnim);
+					}
+					strcpy(CurrentAnim.Name, trimmedName.c_str());
+					CurrentAnim.Begin = AnimPoses;
+					FoundAnim = true;
+				}
+				CurrentAnim.End = AnimPoses;
+
+				CurrentFrame->Frames[o]->Vertex = Com_Calloc(FMDLVertex, MDLHeader.NumVerts);
+
+				bytesRead = fread(CurrentFrame->Frames[o]->Vertex, sizeof(FMDLVertex), MDLHeader.NumVerts, f);
+				CheckElems("Failed reading the vertex data for frame %u:%u (type = group)", MDLHeader.NumVerts, i, o);
+
+				if (AnimPoses == 0)
+				{
+					Vertices = Com_Calloc(FMDLVertex, MDLHeader.NumVerts);
+					memcpy(Vertices, CurrentFrame->Frames[o], sizeof(FMDLVertex) * MDLHeader.NumVerts);
+				}
+
+				AnimPoseToFrameMap[AnimPoses] = i;
+
+				AnimPoses++;
+			}
+
+			Frames[i] = CurrentFrame;
 		}
 	}
 
 	AnimationSets.push_back(CurrentAnim);
+	AllAnim.End = AnimPoses;
+	AnimationSets.emplace(AnimationSets.begin(), AllAnim);
 
 	fclose(f);
 
@@ -673,10 +743,11 @@ void CMDL::UpdateModel()
 
 	Image VertexAnim = { 0 };
 	VertexAnim.width = MDLHeader.NumVerts;
-	VertexAnim.height = MDLHeader.NumFrames; // TODO: Add more frames
+	VertexAnim.height = AnimPoses; // TODO: Add more frames
 	VertexAnim.mipmaps = 1;
 	VertexAnim.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8; // 8-bits per component
-	uint8_t *vertexAnimData = Com_Calloc(uint8_t, MDLHeader.NumVerts * MDLHeader.NumFrames * 4);
+	uint8_t *vertexAnimData = Com_Calloc(uint8_t, MDLHeader.NumVerts * AnimPoses * 4);
+	int32_t CurrentPose = 0;
 
 	for (uint32_t f = 0; f < MDLHeader.NumFrames; f++)
 	{
@@ -687,21 +758,29 @@ void CMDL::UpdateModel()
 			{
 				FMDLVertex* vert = &((FMDLSimpleFrame*)Frames[f])->Vertex[v];
 
-				vertexAnimData[(f * MDLHeader.NumVerts * 4) + (v * 4)] = vert->Position[0];
-				vertexAnimData[(f * MDLHeader.NumVerts * 4) + (v * 4) + 1] = vert->Position[1];
-				vertexAnimData[(f * MDLHeader.NumVerts * 4) + (v * 4) + 2] = vert->Position[2];
-				vertexAnimData[(f * MDLHeader.NumVerts * 4) + (v * 4) + 3] = vert->NormalIndex + (0.1f / 256.f);
+				vertexAnimData[(CurrentPose * MDLHeader.NumVerts * 4) + (v * 4)] = vert->Position[0];
+				vertexAnimData[(CurrentPose * MDLHeader.NumVerts * 4) + (v * 4) + 1] = vert->Position[1];
+				vertexAnimData[(CurrentPose * MDLHeader.NumVerts * 4) + (v * 4) + 2] = vert->Position[2];
+				vertexAnimData[(CurrentPose * MDLHeader.NumVerts * 4) + (v * 4) + 3] = vert->NormalIndex + (0.1f / 256.f);
 			}
+			CurrentPose++;
 		}
 		else
 		{
-			// Dummy data for now
-			for (uint32_t v = 0; v < MDLHeader.NumVerts; v++)
+			FMDLGroupFrame* gf = (FMDLGroupFrame*)Frames[f];
+			for (uint32_t g = 0; g < gf->NumFrames; g++)
 			{
-				vertexAnimData[(f * MDLHeader.NumVerts * 4) + (v * 4)] = 0;
-				vertexAnimData[(f * MDLHeader.NumVerts * 4) + (v * 4) + 1] = 0;
-				vertexAnimData[(f * MDLHeader.NumVerts * 4) + (v * 4) + 2] = 0;
-				vertexAnimData[(f * MDLHeader.NumVerts * 4) + (v * 4) + 3] = 0;
+				// Dummy data for now
+				for (uint32_t v = 0; v < MDLHeader.NumVerts; v++)
+				{
+					FMDLVertex* vert = &(gf->Frames[g]->Vertex[v]);
+
+					vertexAnimData[(CurrentPose * MDLHeader.NumVerts * 4) + (v * 4)] = vert->Position[0];
+					vertexAnimData[(CurrentPose * MDLHeader.NumVerts * 4) + (v * 4) + 1] = vert->Position[1];
+					vertexAnimData[(CurrentPose * MDLHeader.NumVerts * 4) + (v * 4) + 2] = vert->Position[2];
+					vertexAnimData[(CurrentPose * MDLHeader.NumVerts * 4) + (v * 4) + 3] = vert->NormalIndex + (0.1f / 256.f);
+				}
+				CurrentPose++;
 			}
 		}
 	}
@@ -730,10 +809,12 @@ void CMDL::UpdateModel()
 	ChangeRenderMode(RENDERMODE_DEFAULT, UseAnimInterpolation);
 
 	AnimData.TargetFrame = 1;
-	AnimData.FrameCount = MDLHeader.NumFrames;
+	AnimData.FrameCount = AnimPoses;
 	AnimData.Interpolate = 0;
 
-	GViewerSettings.AnimEnd = MDLHeader.NumFrames - 1;
+	GViewerSettings.AnimBegin = 0;
+	GViewerSettings.AnimEnd = AnimPoses - 1;
+	GViewerSettings.CurrentAnimIndex = 0;
 
 	GViewerSettings.FloorOffset = MDLHeader.Translate[2];
 	
@@ -742,6 +823,8 @@ void CMDL::UpdateModel()
 
 void CMDL::CleanupModel()
 {
+	HasRaylibMesh = false;
+	_isValid = false;
 	// Clean up raylib model data
 	for (uint32_t i = 0; i < TextureCount; i++)
 	{
@@ -790,7 +873,16 @@ void CMDL::CleanupModel()
 				}
 				else
 				{
-					// TODO: Handle grouped frames
+					FMDLGroupFrame* frame = (FMDLGroupFrame*)Frames[i];
+
+					Com_Free(frame->Time);
+
+					for (uint32_t g = 0; g < frame->NumFrames; g++)
+					{
+						Com_Free(frame->Frames[g]->Vertex);
+						Com_Free(frame->Frames[g]);
+					}
+					Com_Free(frame->Frames);
 				}
 				Com_Free(Frames[i]);
 			}
@@ -800,8 +892,7 @@ void CMDL::CleanupModel()
 	Com_Free(Vertices);
 
 	AnimationSets.clear();
-	HasRaylibMesh = false;
-	_isValid = false;
+	AnimPoseToFrameMap.clear();
 	TextureCount = 0;
 }
 
@@ -814,8 +905,27 @@ void CMDL::DrawModel()
 
 void CMDL::Frame(float delta, uint32_t begin, uint32_t end)
 {
-	// 10 FPS
+	// 10 FPS by default
 	float frameTime = 1.f / 10.f;
+	uint32_t CurrentFrameIndex = AnimPoseToFrameMap[AnimData.CurrentFrame];
+	uint32_t TargetFrameIndex = AnimPoseToFrameMap[AnimData.TargetFrame];
+	
+	if (CurrentFrameIndex == TargetFrameIndex)
+	{
+		// Check if we're in a group frame
+		if (Frames[CurrentFrameIndex]->Type == 1)
+		{
+			FMDLGroupFrame* gf = (FMDLGroupFrame*)Frames[CurrentFrameIndex];
+			// We're in a group frame, modify the interval
+			uint32_t gfc = AnimData.CurrentFrame - gf->PoseBegin;
+			uint32_t gft = AnimData.TargetFrame - gf->PoseBegin;
+
+			float tt = gf->Time[gft];
+			float tc = gf->Time[gfc];
+
+			frameTime = tt - (gft > gfc ? tc : 0.0f);
+		}
+	}
 
 	float currentInterp = AnimData.GetInterpolate();
 

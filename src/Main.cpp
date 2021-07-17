@@ -189,11 +189,13 @@ static void HelpMarker(const char* desc)
     ImGui::TextDisabled("(why?)");
     if (ImGui::IsItemHovered())
     {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.f, 8.f));
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
         ImGui::TextUnformatted(desc);
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
+        ImGui::PopStyleVar();
     }
 }
 
@@ -253,6 +255,7 @@ bool Anims_ArrayGetter(void* data, int index, const char** out)
 
 Image LVIcon;
 Texture2D LVTexture;
+RenderTexture2D AxisRT;
 
 int main(int argc, char** argv)
 {
@@ -377,7 +380,8 @@ int main(int argc, char** argv)
     colors[ImGuiCol_NavHighlight] = ImVec4(0.98f, 0.26f, 0.46f, 1.00f);
     colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
-    colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+    colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.07f, 0.01f, 0.03f, 0.76f);
+
 
     ImGui::GetStyle().WindowRounding = 4.f;
     ImGui::GetStyle().ChildRounding = 4.f;
@@ -401,6 +405,20 @@ int main(int argc, char** argv)
     Cam.position = Vector3{ 64,64 * UnitScale,64 * UnitScale };
     Cam.target = Vector3{ 0,32,0 };
     Cam.up = Vector3{ 0,1,0 };
+
+    Camera AxisCam;
+    AxisCam.projection = CAMERA_PERSPECTIVE;
+    AxisCam.fovy = 10.f;
+    AxisCam.up = Vector3{ 0,1,0 };
+
+    Camera FPCam;
+    FPCam.projection = CAMERA_PERSPECTIVE;
+    FPCam.fovy = 90.f;
+    FPCam.up = Vector3{ 0,1,0 };
+    FPCam.position = Vector3{ 0,0,0 };
+    FPCam.target = Vector3{ 1,0,0 };
+
+    AxisRT = LoadRenderTexture(96, 96);
 
     CMDL::Setup();
 
@@ -610,18 +628,158 @@ int main(int argc, char** argv)
             ImGui::Text("%s", CurrentModel->Path.c_str());
             if (CurrentModel->HasRaylibMesh)
             {
+                std::vector<std::string> Warnings;
+                std::vector<std::string> Errors;
 
+                // Quakespasm limit
+                if (CurrentModel->MDLHeader.NumVerts > 2000)
+                {
+                    Errors.push_back("Exceeded limit of max 2000 vertices in Quakespasm! The model might not work on most source ports!");
+                }
+                // Vanilla Q1 limit
+                else if (CurrentModel->MDLHeader.NumVerts > 1024)
+                {
+                    Warnings.push_back("Exceeded 1024 vertices! The model might not work in vanilla Quake 1!");
+                }
+
+                if (CurrentModel->MDLHeader.NumTris > 4096)
+                {
+                    Errors.push_back("Exceeded limit of max 4096 vertices in Quakespasm! The model might not work on most source ports!");
+                }
+                // Vanilla Q1 limit 
+                else if (CurrentModel->MDLHeader.NumTris > 2048)
+                {
+                    Warnings.push_back("Exceeded 2048 triangles! The model might not work in vanilla Quake 1!");
+                }
+
+                if (CurrentModel->MDLHeader.NumFrames > 256)
+                {
+                    Warnings.push_back("Exceeded 256 frames! The model might not work in vanilla Quake 1!");
+                }
+
+                // Vanilla Q1 limit, that quite a few source ports also have
+                if (CurrentModel->MDLHeader.NumSkins > 32)
+                {
+                    Errors.push_back("Exceeded limit of max 32 skins! The model might not work on most source ports!");
+                }
+
+                // Vanilla Q1 limit, that quite a few source ports also have
+                if (CurrentModel->MDLHeader.SkinHeight > 480)
+                {
+                    Errors.push_back("Exceeded limit of max 480 height on skins! The model might not work on most source ports!");
+                }
+
+                ImGui::Spacing();
+                ImGui::Spacing();
+
+                if (ImGui::BeginTable("ModelData", 2, ImGuiTableFlags_SizingFixedFit))
+                {
+                    ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_None, 128.f);
+                    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_None);
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("Vertices");
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d (%d rendered)", CurrentModel->MDLHeader.NumVerts, CurrentModel->MDLHeader.NumTris * 3); ImGui::SameLine();
+                    HelpMarker("Due to the way UVs are calculated, the vertices need to be unique for every triangle. Fortunately, this does not contribute to the vertex limit in the engine.");
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("Triangles");
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", CurrentModel->MDLHeader.NumTris);
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("Frames");
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", CurrentModel->MDLHeader.NumFrames);
+                    ImGui::EndTable();
+                }
+
+                ImGui::Spacing();
+                ImGui::Spacing();
+
+                for each (auto wrn in Warnings)
+                {
+                    ImGui::TextColored(ImVec4(1.f, 1.0f, 0.2f, 1.f), "%s", wrn.c_str());
+                }
+
+                for each (auto err in Errors)
+                {
+                    ImGui::TextColored(ImVec4(1.f, 0.1f, 0.1f, 1.f), "%s", err.c_str());
+                }
             }
         }
-    
+
         ImGui::Unindent(ImGui::GetWindowContentRegionMin().x + 8.0f);
+        
+        // Only show axes if not in FP View
+        if (!GViewerSettings.UseFirstPersonView)
+        {
+            ImGui::SetCursorPos(ImVec2(ImGui::GetWindowContentRegionMin().x + 8.0f,
+                ImGui::GetWindowContentRegionMax().y - (8.0f + AxisRT.texture.height)));
+
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(192, 192, 192, 192));
+            ImGui::BeginChild("AxisRT", ImVec2(AxisRT.texture.width, AxisRT.texture.height), true);
+            ImGui::Image(AxisRT.texture.id, ImVec2(AxisRT.texture.width, AxisRT.texture.height), ImVec2(0, 1), ImVec2(1, 0));
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.f, 8.f));
+                ImGui::BeginTooltip();
+                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+                ImGui::TextUnformatted("X = forward\nY = left\nZ = up");
+                ImGui::PopTextWrapPos();
+                ImGui::EndTooltip();
+                ImGui::PopStyleVar();
+            }
+            ImGui::EndChild();
+            ImGui::PopStyleColor();
+        }
 
         ImGui::End();
         ImGui::PopStyleVar();
 
+        BeginDrawing();
+
         if (/*AnyWindowFocused && */IsViewportFocused)
         {
-            UpdateCamera(&Cam);
+            if(!GViewerSettings.UseFirstPersonView)
+                UpdateCamera(&Cam);
+
+            Vector3 Dir = Vector3Normalize(Vector3Subtract(Cam.position, Cam.target));
+            AxisCam.position = Vector3Scale(Dir, 20.f);
+            AxisCam.target = Vector3{ 0 };
+
+            BeginTextureMode(AxisRT);
+            BeginMode3D(AxisCam);
+            ClearBackground(Color{ 0 });
+
+            Vector3 XA = Vector3{ 1,0,0 };
+            Vector3 YA = Vector3{ 0,0,-1 };
+            Vector3 ZA = Vector3{ 0,1,0 };
+
+            Vector2 XTextPos = Vector2{ 0 };
+            Vector2 YTextPos = Vector2{ 0 };
+            Vector2 ZTextPos = Vector2{ 0 };
+
+            //rlSetLineWidth(2.f);
+            DrawLine3D(Vector3{ 0 }, XA, Color{ 255,0,0,255 });
+            XTextPos = GetWorldToScreen(XA, AxisCam);
+            DrawLine3D(Vector3{ 0 }, YA, Color{ 0,255,0,255 });
+            YTextPos = GetWorldToScreen(YA, AxisCam);
+            DrawLine3D(Vector3{ 0 }, ZA, Color{ 0,0,255,255 });
+            ZTextPos = GetWorldToScreen(ZA, AxisCam);
+            //rlSetLineWidth(1.f);
+
+            rlDrawRenderBatchActive();
+
+            EndMode3D();
+
+            DrawText("X", XTextPos.x - (MeasureText("X", 10) / 2), XTextPos.y-10, 10, Color{255,0,0,255});
+            DrawText("Y", YTextPos.x - (MeasureText("Y", 10) / 2), YTextPos.y - 10, 10, Color{ 0,255,0,255 });
+            DrawText("Z", ZTextPos.x - (MeasureText("Z", 10) / 2), ZTextPos.y - 10, 10, Color{ 0,0,255,255 });
+
+            rlDrawRenderBatchActive();
+            EndTextureMode();
         }
 
         if (IsKeyDown('Z')) Cam.target = Vector3 { 0.0f, 0.0f, 0.0f };
@@ -650,12 +808,14 @@ int main(int argc, char** argv)
         ImGui::RadioButton("Show UVs", (int*)&GViewerSettings.RenderMode, 3);
         ImGui::RadioButton("Show Indexed Texture", (int*)&GViewerSettings.RenderMode, 4);
         ImGui::Unindent();
+        ImGui::Separator();
         ImGui::Checkbox("Animation Interpolation", &GViewerSettings.UseAnimInterpolation);
         ImGui::Checkbox("Virtual Resolution (320x240) (V)", &GViewerSettings.UseVirtualResolution);
         if (ImGui::Button("Focus camera on world origin (Z)"))
         {
             Cam.target = Vector3{ 0.0f, 0.0f, 0.0f };
         }
+        ImGui::Separator();
 
         if (ImGui::BeginCombo("Palette", GetDirectoryForCurrentGame()))
         {
@@ -679,9 +839,11 @@ int main(int argc, char** argv)
             }
             ImGui::EndCombo();
         }
-
+        ImGui::Separator();
         ImGui::Checkbox("Show Floor", &GViewerSettings.DrawFloor);
         ImGui::DragFloat("Floor Offset", &GViewerSettings.FloorOffset, 1.0f, 0.0, 0.0f, "%.3f");
+        ImGui::Separator();
+        ImGui::Checkbox("First Person Camera", &GViewerSettings.UseFirstPersonView);
         ImGui::End();
 
         if (CurrentModel)
@@ -690,7 +852,6 @@ int main(int argc, char** argv)
         }
 
 
-        BeginDrawing();
 
         float screen[2];
 
@@ -717,7 +878,7 @@ int main(int argc, char** argv)
         //ClearBackground(DARKGRAY);
         ClearBackground(Color{ 0 });
 
-        BeginMode3D(Cam);
+        BeginMode3D(GViewerSettings.UseFirstPersonView ? FPCam : Cam);
 
         //DrawGrid(24, 1.0f * UnitScale);
 
@@ -752,7 +913,17 @@ int main(int argc, char** argv)
                 CurrentModel->DrawModel();
 
                 Matrix root = MatrixIdentity();
-                root = MatrixMultiply(root, MatrixRotate(Vector3{ 0, 1, 0 }, GetTime()));
+                Matrix gridMat = root;
+                gridMat = MatrixMultiply(gridMat, MatrixScale(CurrentModel->MDLHeader.Scale[0], CurrentModel->MDLHeader.Scale[2], -CurrentModel->MDLHeader.Scale[1]));
+                gridMat = MatrixMultiply(gridMat, MatrixTranslate(CurrentModel->MDLHeader.Translate[0], CurrentModel->MDLHeader.Translate[2], -CurrentModel->MDLHeader.Translate[1]));
+                //gridMat = MatrixMultiply(gridMat, MatrixRotate(Vector3{ 1,0,0 }, DEG2RAD * (90.f)));
+
+
+                if (CurrentModel->MDLHeader.Flags & EF_ROTATE)
+                {
+                    root = MatrixMultiply(root, MatrixRotate(Vector3{ 0, 1, 0 }, GetTime()));
+                    gridMat = MatrixMultiply(gridMat, MatrixRotate(Vector3{ 0, 1, 0 }, GetTime()));
+                }
                 //root = MatrixMultiply(root, MatrixTranslate(0.0f, GViewerSettings.FloorOffset, 0.0f));
 
                 //glEnable(GL_ALPHA_TEST);
@@ -817,6 +988,22 @@ int main(int argc, char** argv)
                     EndBlendMode();
                     glDepthMask(GL_TRUE);
                 }
+
+
+                BeginBlendMode(BLEND_ADDITIVE);
+                rlDisableBackfaceCulling();
+                
+                {
+                    rlPushMatrix();
+                    rlMultMatrixf(MatrixToFloat(gridMat));
+                    Vector3 rs = Vector3{ 255.f, 255.f, 255.f };
+                    DrawCubeWiresV(Vector3{ 127.5f, 127.5f, 127.5f }, rs, Color{ 255, 128, 16, 255 });
+                    rlPopMatrix();
+                }
+
+                rlEnableBackfaceCulling();
+
+                EndBlendMode();
 
                 EndMode3D();
                 // LUNA: This was a blur postprocess effect for the floor. dunno if its desired
@@ -1052,10 +1239,10 @@ int main(int argc, char** argv)
                         {
                             ImGui::PushID(v);
                             FMDLFrameBase *frame = CurrentModel->Frames[v];
-                            FMDLSimpleFrame* simpframe = reinterpret_cast<FMDLSimpleFrame*>(frame);
 
                             if (frame->Type == 0)
                             {
+                                FMDLSimpleFrame* simpframe = reinterpret_cast<FMDLSimpleFrame*>(frame);
                                 if (ImGui::TreeNode(TextFormat("%u (simple) - %s", v, simpframe->Name)))
                                 {
                                     ImGui::LabelText("Bounding Box Min", "%hhu %hhu %hhu",
@@ -1073,8 +1260,17 @@ int main(int argc, char** argv)
                             }
                             else
                             {
-                                if (ImGui::TreeNode(TextFormat("%u (group, not supported yet)", v)))
+                                FMDLGroupFrame* groupframe = reinterpret_cast<FMDLGroupFrame*>(frame);
+                                if (ImGui::TreeNode(TextFormat("%u (group)", v)))
                                 {
+                                    for (uint32_t g = 0; g < groupframe->NumFrames; g++)
+                                    {
+                                        ImGui::Text("Frame %d", g);
+                                        ImGui::Indent();
+                                        ImGui::Text("Time: %.3f", groupframe->Time[g]);
+                                        ImGui::Text("Name: %s", groupframe->Frames[g]->Name);
+                                        ImGui::Unindent();
+                                    }
                                     ImGui::TreePop();
                                 }
                             }
@@ -1106,9 +1302,9 @@ int main(int argc, char** argv)
             ImGui::ProgressBar(0.f, ImVec2(-FLT_MIN, 0), "");
             float ProgSizeX = ImGui::GetItemRectSize().x;
             float ProgSizeY = ImGui::GetItemRectSize().y;
-            float ProgWidth = (float)(((GViewerSettings.AnimEnd + 1) - GViewerSettings.AnimBegin) / (float)(CurrentModel->MDLHeader.NumFrames)) * ProgSizeX;
-            float ProgStep = (float)((1.f) / (float)(CurrentModel->MDLHeader.NumFrames)) * ProgSizeX;
-            float ProgX = (float)(GViewerSettings.AnimBegin / (float)(CurrentModel->MDLHeader.NumFrames)) * ProgSizeX;
+            float ProgWidth = (float)(((GViewerSettings.AnimEnd + 1) - GViewerSettings.AnimBegin) / (float)(CurrentModel->AnimPoses)) * ProgSizeX;
+            float ProgStep = (float)((1.f) / (float)(CurrentModel->AnimPoses)) * ProgSizeX;
+            float ProgX = (float)(GViewerSettings.AnimBegin / (float)(CurrentModel->AnimPoses)) * ProgSizeX;
             float GrabberWidth = 4.f;
             ImGui::SetCursorPos(ImVec2(ProgPosX + ProgX, ProgPosY));
             ImGui::ProgressBar((float)(CurrentModel->AnimData.TargetFrame - GViewerSettings.AnimBegin) / (float)(GViewerSettings.AnimEnd - GViewerSettings.AnimBegin),
@@ -1165,7 +1361,7 @@ int main(int argc, char** argv)
                 GViewerSettings.AnimEnd = anim->End;
             }
 
-            ImGui::DragIntRange2("Anim Range", &GViewerSettings.AnimBegin, &GViewerSettings.AnimEnd, 1.0f, 0, CurrentModel->MDLHeader.NumFrames-1, "%u", "%u", ImGuiSliderFlags_AlwaysClamp );
+            ImGui::DragIntRange2("Anim Range", &GViewerSettings.AnimBegin, &GViewerSettings.AnimEnd, 1.0f, 0, CurrentModel->AnimPoses-1, "%u", "%u", ImGuiSliderFlags_AlwaysClamp );
 
             /*
             ImGui::Text("%d %d %d %d", CurrentModel->AnimData.CurrentFrame,
@@ -1177,6 +1373,7 @@ int main(int argc, char** argv)
             ImGui::TableNextColumn();
 
             ImGui::Text("Frames: %u", CurrentModel->MDLHeader.NumFrames);
+            ImGui::Text("Poses: %u", CurrentModel->AnimPoses);
         }
         else
         {

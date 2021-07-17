@@ -83,6 +83,8 @@ struct FViewerSettings
 
 	bool DrawFloor = true;
 	float FloorOffset = 0.0f;
+
+	bool UseFirstPersonView = false;
 };
 
 extern FViewerSettings GViewerSettings;
