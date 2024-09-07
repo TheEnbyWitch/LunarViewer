@@ -20,7 +20,7 @@ jobs:
     - uses: actions/checkout@v2
       
     - name: Setup premake
-      uses: abel0b/setup-premake@master
+      uses: abel0b/setup-premake@v1
       
     - name: Setup Environment
       run: |
