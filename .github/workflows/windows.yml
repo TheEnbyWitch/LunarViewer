@@ -34,15 +34,10 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} LunarViewer.sln
       
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: lunar-artifact
         path: |
           game/
-          
-    - uses: actions/upload-artifact@v2
-      with:
-        name: lunar-artifact
-        path: |
           bin/${{env.BUILD_CONFIGURATION}}/*.exe
           bin/${{env.BUILD_CONFIGURATION}}/*.dll
