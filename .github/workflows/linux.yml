@@ -43,10 +43,5 @@ jobs:
         name: lunar-artifact
         path: |
           game/
-          
-    - uses: actions/upload-artifact@v4
-      with:
-        name: lunar-artifact
-        path: |
           bin/${{env.BUILD_DIR}}/*
           !bin/${{env.BUILD_DIR}}/*.a
