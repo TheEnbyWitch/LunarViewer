@@ -20,7 +20,7 @@ jobs:
     - uses: actions/checkout@v2
       
     - name: Setup premake
-      uses: abel0b/setup-premake@master
+      uses: abel0b/setup-premake@v1
       
     - name: Setup Environment
       run: |
@@ -38,15 +38,10 @@ jobs:
     - name: make
       run: make config=${{env.BUILD_CONFIGURATION}}
       
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: lunar-artifact
         path: |
           game/
-          
-    - uses: actions/upload-artifact@v2
-      with:
-        name: lunar-artifact
-        path: |
           bin/${{env.BUILD_DIR}}/*
           !bin/${{env.BUILD_DIR}}/*.a
