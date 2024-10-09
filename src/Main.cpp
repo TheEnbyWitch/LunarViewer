@@ -326,7 +326,8 @@ int main(int argc, char** argv)
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-    colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.94f);
+    //colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.94f);
+    colors[ImGuiCol_WindowBg] = ImVec4(GViewerSettings.bgred * (1.0f / 255.0f), GViewerSettings.bggreen * (1.0f / 255.0f), GViewerSettings.bgblue * (1.0f / 255.0f), GViewerSettings.bga * (1.0f / 255.0f));
     colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
     //colors[ImGuiCol_Border] = ImVec4(0.50f, 0.43f, 0.45f, 0.50f);
@@ -597,6 +598,28 @@ int main(int argc, char** argv)
 
         //bool AnyWindowFocused = ImGui::IsAnyItemHovered();
 
+        //background color updating
+        if (GViewerSettings.bgred < 0)
+            GViewerSettings.bgred = 0;
+        if (GViewerSettings.bgred > 255)
+            GViewerSettings.bgred = 255;
+
+        if (GViewerSettings.bggreen < 0)
+            GViewerSettings.bggreen = 0;
+        if (GViewerSettings.bggreen > 255)
+            GViewerSettings.bggreen = 255;
+
+        if (GViewerSettings.bgblue < 0)
+            GViewerSettings.bgblue = 0;
+        if (GViewerSettings.bgblue > 255)
+            GViewerSettings.bgblue = 255;
+
+        if (GViewerSettings.bga < 0)
+            GViewerSettings.bga = 0;
+        if (GViewerSettings.bga > 255)
+            GViewerSettings.bga = 255;
+        colors[ImGuiCol_WindowBg] = ImVec4(GViewerSettings.bgred * (1.0f / 255.0f), GViewerSettings.bggreen * (1.0f / 255.0f), GViewerSettings.bgblue * (1.0f / 255.0f), GViewerSettings.bga * (1.0f / 255.0f));
+
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::SetNextWindowDockID(MainDockID, ImGuiCond_FirstUseEver);
         ImGui::Begin("Viewport");
@@ -843,7 +866,15 @@ int main(int argc, char** argv)
         ImGui::Checkbox("Show Floor", &GViewerSettings.DrawFloor);
         ImGui::DragFloat("Floor Offset", &GViewerSettings.FloorOffset, 1.0f, 0.0, 0.0f, "%.3f");
         ImGui::Separator();
+        ImGui::Checkbox("Show Box", &GViewerSettings.DrawBox);
+        ImGui::Separator();
         ImGui::Checkbox("First Person Camera", &GViewerSettings.UseFirstPersonView);
+        ImGui::Separator();
+        ImGui::Text("Background Color");
+        ImGui::InputInt("Red", &GViewerSettings.bgred);
+        ImGui::InputInt("Green", &GViewerSettings.bggreen);
+        ImGui::InputInt("Blue", &GViewerSettings.bgblue);
+        ImGui::InputInt("Alpha", &GViewerSettings.bga);
         ImGui::End();
 
         if (CurrentModel)
@@ -899,6 +930,7 @@ int main(int argc, char** argv)
             if (CurrentModel->HasRaylibMesh)
             {
                 bool HasFloor = GViewerSettings.DrawFloor;
+                bool HasBox = GViewerSettings.DrawBox;
                 CurrentModel->Frame(GetFrameTime(), GViewerSettings.AnimBegin, GViewerSettings.AnimEnd);
                 SetShaderValue(CurrentModel->RShader, GetShaderLocation(CurrentModel->RShader, "screenSize"), screen, SHADER_UNIFORM_VEC2);
                 SetShaderValue(CurrentModel->RShader, GetShaderLocation(CurrentModel->RShader, "floorOffset"), &GViewerSettings.FloorOffset, SHADER_UNIFORM_FLOAT);
@@ -924,6 +956,7 @@ int main(int argc, char** argv)
                     root = MatrixMultiply(root, MatrixRotate(Vector3{ 0, 1, 0 }, GetTime()));
                     gridMat = MatrixMultiply(gridMat, MatrixRotate(Vector3{ 0, 1, 0 }, GetTime()));
                 }
+
                 //root = MatrixMultiply(root, MatrixTranslate(0.0f, GViewerSettings.FloorOffset, 0.0f));
 
                 //glEnable(GL_ALPHA_TEST);
@@ -997,7 +1030,8 @@ int main(int argc, char** argv)
                     rlPushMatrix();
                     rlMultMatrixf(MatrixToFloat(gridMat));
                     Vector3 rs = Vector3{ 255.f, 255.f, 255.f };
-                    DrawCubeWiresV(Vector3{ 127.5f, 127.5f, 127.5f }, rs, Color{ 255, 128, 16, 255 });
+                    if(HasBox == true)
+                        DrawCubeWiresV(Vector3{ 127.5f, 127.5f, 127.5f }, rs, Color{ 255, 128, 16, 255 });
                     rlPopMatrix();
                 }
 

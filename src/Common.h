@@ -82,7 +82,10 @@ struct FViewerSettings
 	int CurrentAnimIndex = 0;
 
 	bool DrawFloor = true;
+	bool DrawBox = false;
 	float FloorOffset = 0.0f;
+
+	int bgred = 15, bggreen = 15, bgblue = 15, bga = 239;
 
 	bool UseFirstPersonView = false;
 };
