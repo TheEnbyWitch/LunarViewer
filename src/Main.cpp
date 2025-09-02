@@ -518,11 +518,40 @@ int main(int argc, char** argv)
             }
             ImGui::EndMenu();
         }
+        if (ImGui::MenuItem("Controls"))
+        {
+            ImGui::OpenPopup("Controls");
+        }
+        // EV3: Copying code because I am a SUPERHACK!
+        bool unused_open = true;
+        if (ImGui::BeginPopupModal("Controls", &unused_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
+        {
+            if (ImGui::BeginTable("aboutaligncenter2", 3, ImGuiTableFlags_SizingFixedFit))
+            {
+                ImGui::TableSetupColumn("emp", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("emp2", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("emp3", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TableNextColumn();
+                ImGui::Text("Press Z to focus camera on world origin.\n");
+                ImGui::Text("Press V to enable Virtual Resolution.\n");
+                ImGui::Text("Press Esc to close Lunarviewer.\n");
+                ImGui::Text("Click on the Mouse Wheel to move the model from left to right.\n");
+                ImGui::Text("Scroll the Mouse Wheel to zoom in or out the model.\n");
+                ImGui::Text("Press Alt and the Mouse Wheel to rotate the model.");
+                ImGui::TableNextColumn();
+                ImGui::EndTable();
+            }
+            if (ImGui::Button("Close"))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
         if(ImGui::MenuItem("About"))
         {
             ImGui::OpenPopup("About");
         }
-        bool unused_open = true;
+        unused_open = true;
         if (ImGui::BeginPopupModal("About", &unused_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove))
         {
             // LUNA: Very Hacky™!!
